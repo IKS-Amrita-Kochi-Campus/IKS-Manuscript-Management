@@ -62,44 +62,34 @@ A secure, government-grade manuscript archival web platform built with Next.js (
 - PostgreSQL (Aiven Cloud or other provider)
 - npm or yarn
 
-### 1. Setup Backend
+### 1. Project Setup
+
+```bash
+# Install dependencies for both frontend and backend
+npm run install:all
+
+# Start both frontend and backend in development mode
+npm run dev:backend
+npm run dev:frontend
+```
+
+Alternatively, you can navigate to each directory manually:
+
+### Setup Backend
 
 ```bash
 cd backend
-
-# Copy environment file
-cp .env.example .env
-
-# Edit .env with your credentials:
-# - MONGODB_URI_LOG (MongoDB Atlas - iks_log database)
-# - MONGODB_URI_MANUSCRIPTS (MongoDB Atlas - manuscript database)
-# - POSTGRESS_URI (Aiven PostgreSQL)
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-Backend runs on http://localhost:5000
-
-### 2. Setup Frontend
+### Setup Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Create .env.local
-echo "NEXT_PUBLIC_API_URL=http://localhost:5000/api" > .env.local
-
-# Start development server
 npm run dev
 ```
-
-Frontend runs on http://localhost:3000
 
 ## Database Architecture
 
