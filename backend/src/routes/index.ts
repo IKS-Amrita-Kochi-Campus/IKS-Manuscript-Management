@@ -4,6 +4,7 @@ import userRoutes from './user.routes.js';
 import manuscriptRoutes from './manuscript.routes.js';
 import accessRoutes from './access.routes.js';
 import adminRoutes from './admin.routes.js';
+import bookmarkRoutes from './bookmark.routes.js';
 
 const router = Router();
 
@@ -22,5 +23,7 @@ router.use('/users', userRoutes);
 router.use('/manuscripts', manuscriptRoutes);
 router.use('/access-requests', accessRoutes);
 router.use('/admin', adminRoutes);
+router.use('/bookmarks', bookmarkRoutes);
 
 export default router;
+

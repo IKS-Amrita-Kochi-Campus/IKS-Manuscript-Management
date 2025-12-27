@@ -42,6 +42,19 @@ const LoadingSpinner = () => (
     </svg>
 );
 
+const BookmarkIcon = ({ filled }: { filled?: boolean }) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+);
+
+const EditIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+);
+
 interface Manuscript {
     _id: string;
     title: string;
@@ -49,7 +62,7 @@ interface Manuscript {
     author: string;
     category: string;
     subject?: string;
-    language: string;
+    languages?: string[];
     visibility: string;
     status: string;
     abstract?: string;
@@ -90,6 +103,8 @@ export default function ManuscriptDetailPage() {
     const [showRequestForm, setShowRequestForm] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isBookmarked, setIsBookmarked] = useState(false);
+    const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
     // Check if current user is the owner
     const isOwner = user && manuscript && user.id === manuscript.ownerId;
@@ -135,12 +150,46 @@ export default function ManuscriptDetailPage() {
         }
     };
 
+    const checkBookmark = async () => {
+        try {
+            const response = await fetchJsonWithAuth<{ success: boolean; isBookmarked: boolean }>(
+                getApiUrl(`/bookmarks/check/${id}`)
+            );
+            if (response.success) {
+                setIsBookmarked(response.isBookmarked);
+            }
+        } catch (err) {
+            console.error('Check bookmark error:', err);
+        }
+    };
+
+    const toggleBookmark = async () => {
+        try {
+            setBookmarkLoading(true);
+            const response = await fetchJsonWithAuth<{ success: boolean; isBookmarked: boolean }>(
+                getApiUrl('/bookmarks/toggle'),
+                {
+                    method: 'POST',
+                    body: JSON.stringify({ manuscriptId: id }),
+                }
+            );
+            if (response.success) {
+                setIsBookmarked(response.isBookmarked);
+            }
+        } catch (err) {
+            console.error('Toggle bookmark error:', err);
+        } finally {
+            setBookmarkLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (!isAuthenticated()) {
             router.push('/login');
             return;
         }
         fetchData();
+        checkBookmark();
     }, [id, router]);
 
     const handleRequestAccess = async (e: React.FormEvent) => {
@@ -260,29 +309,74 @@ export default function ManuscriptDetailPage() {
         <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {/* Header */}
             <div>
-                <button
-                    onClick={() => router.back()}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        background: 'none',
-                        border: 'none',
-                        color: '#64748b',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        marginBottom: '1.5rem',
-                        padding: 0
-                    }}
-                >
-                    <ArrowLeftIcon />
-                    Back
-                </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <button
+                        onClick={() => router.back()}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            background: 'none',
+                            border: 'none',
+                            color: '#64748b',
+                            cursor: 'pointer',
+                            fontSize: '0.875rem',
+                            padding: 0
+                        }}
+                    >
+                        <ArrowLeftIcon />
+                        Back
+                    </button>
+                    <button
+                        onClick={toggleBookmark}
+                        disabled={bookmarkLoading}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            background: isBookmarked ? '#fef3c7' : '#f8fafc',
+                            color: isBookmarked ? '#d97706' : '#64748b',
+                            border: `1px solid ${isBookmarked ? '#fde68a' : '#e5e7eb'}`,
+                            borderRadius: '0.5rem',
+                            cursor: bookmarkLoading ? 'not-allowed' : 'pointer',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            transition: 'all 0.15s',
+                        }}
+                    >
+                        <BookmarkIcon filled={isBookmarked} />
+                        {isBookmarked ? 'Bookmarked' : 'Bookmark'}
+                    </button>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                        <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                            {manuscript.title}
-                        </h1>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                                {manuscript.title}
+                            </h1>
+                            {isOwner && (
+                                <Link
+                                    href={`/dashboard/manuscripts/${id}/edit`}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.375rem',
+                                        padding: '0.5rem 0.875rem',
+                                        fontSize: '0.8125rem',
+                                        fontWeight: 500,
+                                        color: '#0369a1',
+                                        background: '#e0f2fe',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        textDecoration: 'none',
+                                        transition: 'all 0.15s',
+                                    }}
+                                >
+                                    <EditIcon /> Edit
+                                </Link>
+                            )}
+                        </div>
                         {manuscript.alternateTitle && (
                             <p style={{ fontSize: '1.125rem', color: '#64748b', marginTop: '0.5rem' }}>
                                 {manuscript.alternateTitle}
@@ -437,19 +531,27 @@ export default function ManuscriptDetailPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div style={{ background: 'white', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
                             <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Author / Compiler</div>
-                            <div style={{ fontWeight: 500, color: '#0f172a' }}>{manuscript.author}</div>
+                            <div style={{ fontWeight: 500, color: manuscript.author ? '#0f172a' : '#94a3b8', fontStyle: manuscript.author ? 'normal' : 'italic' }}>
+                                {manuscript.author || 'Not specified'}
+                            </div>
                         </div>
                         <div style={{ background: 'white', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
                             <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Language</div>
-                            <div style={{ fontWeight: 500, color: '#0f172a' }}>{manuscript.language}</div>
+                            <div style={{ fontWeight: 500, color: manuscript.languages && manuscript.languages.length > 0 ? '#0f172a' : '#94a3b8', fontStyle: manuscript.languages && manuscript.languages.length > 0 ? 'normal' : 'italic' }}>
+                                {manuscript.languages && manuscript.languages.length > 0 ? manuscript.languages.join(', ') : 'Not specified'}
+                            </div>
                         </div>
                         <div style={{ background: 'white', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
                             <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Category</div>
-                            <div style={{ fontWeight: 500, color: '#0f172a' }}>{manuscript.category}</div>
+                            <div style={{ fontWeight: 500, color: manuscript.category ? '#0f172a' : '#94a3b8', fontStyle: manuscript.category ? 'normal' : 'italic' }}>
+                                {manuscript.category || 'Not specified'}
+                            </div>
                         </div>
                         <div style={{ background: 'white', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
                             <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Period</div>
-                            <div style={{ fontWeight: 500, color: '#0f172a' }}>{manuscript.centuryEstimate || 'N/A'}</div>
+                            <div style={{ fontWeight: 500, color: manuscript.centuryEstimate ? '#0f172a' : '#94a3b8', fontStyle: manuscript.centuryEstimate ? 'normal' : 'italic' }}>
+                                {manuscript.centuryEstimate || 'Not specified'}
+                            </div>
                         </div>
                     </div>
 

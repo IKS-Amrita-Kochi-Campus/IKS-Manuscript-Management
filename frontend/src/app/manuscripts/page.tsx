@@ -14,7 +14,7 @@ interface Manuscript {
     author: string;
     category: string;
     subject?: string;
-    language: string;
+    languages?: string[];
     visibility: string;
     status: string;
     abstract?: string;
@@ -334,7 +334,7 @@ const ManuscriptCard = ({ manuscript }: { manuscript: Manuscript }) => (
                 fontWeight: 500,
                 borderRadius: '6px',
             }}>
-                {manuscript.language}
+                {manuscript.languages && manuscript.languages.length > 0 ? manuscript.languages.join(', ') : 'N/A'}
             </span>
             <span style={{
                 padding: '0.25rem 0.5rem',
@@ -374,20 +374,23 @@ const ManuscriptCard = ({ manuscript }: { manuscript: Manuscript }) => (
                 <EyeIcon />
                 View Details
             </Link>
-            <button style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.5rem 0.75rem',
-                color: '#64748b',
-                background: '#f8fafc',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-            }}>
+            <Link
+                href="/login"
+                title="Sign in to bookmark"
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0.5rem 0.75rem',
+                    color: '#64748b',
+                    background: '#f8fafc',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.5rem',
+                    textDecoration: 'none',
+                    transition: 'all 0.15s',
+                }}>
                 <BookmarkIcon />
-            </button>
+            </Link>
         </div>
     </div>
 );

@@ -97,11 +97,15 @@ async function refreshAccessToken(): Promise<boolean> {
 /**
  * Clear all auth data and redirect to login
  */
-function clearAuthAndRedirect(): void {
+function clearAuthAndRedirect(reason?: string): void {
     clearTokens();
 
     // Only redirect if we're in the browser and not already on the login page
     if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        // Store a message to display on login page
+        if (reason) {
+            sessionStorage.setItem('authMessage', reason);
+        }
         window.location.href = '/login';
     }
 }
@@ -120,7 +124,7 @@ export async function fetchWithAuth(
     const token = getAccessToken();
 
     if (!token) {
-        clearAuthAndRedirect();
+        clearAuthAndRedirect('Please sign in to continue');
         throw new Error('No access token');
     }
 
@@ -159,7 +163,7 @@ export async function fetchWithAuth(
             });
         } else {
             // Refresh failed, redirect to login
-            clearAuthAndRedirect();
+            clearAuthAndRedirect('Your session has expired. Please sign in again.');
             throw new Error('Session expired');
         }
     }

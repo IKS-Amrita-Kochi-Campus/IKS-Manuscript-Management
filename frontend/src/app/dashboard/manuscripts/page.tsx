@@ -13,7 +13,7 @@ interface Manuscript {
     author: string;
     category: string;
     subject?: string;
-    language: string;
+    languages?: string[];
     visibility: string;
     status: string;
     viewCount?: number;
@@ -169,7 +169,7 @@ const ManuscriptCard = ({ manuscript }: { manuscript: Manuscript }) => {
                     fontWeight: 500,
                     borderRadius: '6px',
                 }}>
-                    {manuscript.language}
+                    {manuscript.languages && manuscript.languages.length > 0 ? manuscript.languages.join(', ') : 'N/A'}
                 </span>
                 <span style={{
                     padding: '0.25rem 0.5rem',

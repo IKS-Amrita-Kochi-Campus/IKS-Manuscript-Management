@@ -70,12 +70,18 @@ export function generateTokenPair(payload: Omit<TokenPayload, 'iat' | 'exp'>): T
 
 /**
  * Verifies an access token
+ * Returns null if token is invalid or expired (instead of throwing)
  */
-export function verifyAccessToken(token: string): TokenPayload {
-    return jwt.verify(token, config.jwt.accessSecret, {
-        issuer: 'manuscript-archive',
-        audience: 'manuscript-users',
-    }) as TokenPayload;
+export function verifyAccessToken(token: string): TokenPayload | null {
+    try {
+        return jwt.verify(token, config.jwt.accessSecret, {
+            issuer: 'manuscript-archive',
+            audience: 'manuscript-users',
+        }) as TokenPayload;
+    } catch (error) {
+        // Token is invalid, expired, or malformed
+        return null;
+    }
 }
 
 /**

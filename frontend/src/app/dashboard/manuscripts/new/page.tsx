@@ -434,6 +434,31 @@ export default function NewManuscriptPage() {
                                     />
                                 </div>
 
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#475569', marginBottom: '0.5rem' }}>Period / Century</label>
+                                        <input
+                                            type="text"
+                                            name="centuryEstimate"
+                                            value={formData.centuryEstimate}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g., 15th Century, 1800 CE"
+                                            style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', outline: 'none' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#475569', marginBottom: '0.5rem' }}>Origin / Region</label>
+                                        <input
+                                            type="text"
+                                            name="origin"
+                                            value={formData.origin}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g., Kerala, Tamil Nadu"
+                                            style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', outline: 'none' }}
+                                        />
+                                    </div>
+                                </div>
+
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#475569', marginBottom: '0.5rem' }}>Visibility</label>
                                     <select

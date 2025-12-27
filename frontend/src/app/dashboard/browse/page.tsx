@@ -12,7 +12,7 @@ interface Manuscript {
     author: string;
     category: string;
     subject?: string;
-    language: string;
+    languages?: string[];
     visibility: string;
     status: string;
     abstract?: string;
@@ -70,8 +70,8 @@ const ListIcon = () => (
     </svg>
 );
 
-const BookmarkIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const BookmarkIcon = ({ filled }: { filled?: boolean }) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
     </svg>
 );
@@ -104,7 +104,15 @@ const BookIcon = () => (
 );
 
 // Manuscript Card Component
-const ManuscriptCard = ({ manuscript }: { manuscript: Manuscript }) => (
+const ManuscriptCard = ({
+    manuscript,
+    isBookmarked,
+    onToggleBookmark
+}: {
+    manuscript: Manuscript;
+    isBookmarked: boolean;
+    onToggleBookmark: (manuscriptId: string) => void;
+}) => (
     <div style={{
         background: 'white',
         border: '1px solid #e5e7eb',
@@ -190,7 +198,7 @@ const ManuscriptCard = ({ manuscript }: { manuscript: Manuscript }) => (
                 fontWeight: 500,
                 borderRadius: '6px',
             }}>
-                {manuscript.language}
+                {manuscript.languages && manuscript.languages.length > 0 ? manuscript.languages.join(', ') : 'N/A'}
             </span>
             <span style={{
                 padding: '0.25rem 0.5rem',
@@ -230,19 +238,26 @@ const ManuscriptCard = ({ manuscript }: { manuscript: Manuscript }) => (
                 <EyeIcon />
                 View Details
             </Link>
-            <button style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.5rem 0.75rem',
-                color: '#64748b',
-                background: '#f8fafc',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-            }}>
-                <BookmarkIcon />
+            <button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleBookmark(manuscript._id);
+                }}
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0.5rem 0.75rem',
+                    color: isBookmarked ? '#d97706' : '#64748b',
+                    background: isBookmarked ? '#fef3c7' : '#f8fafc',
+                    border: `1px solid ${isBookmarked ? '#fde68a' : '#e5e7eb'}`,
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                }}
+                title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+            >
+                <BookmarkIcon filled={isBookmarked} />
             </button>
         </div>
     </div>
@@ -280,6 +295,7 @@ export default function DashboardBrowsePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
 
     // Fetch filter options
     const fetchFilters = async () => {
@@ -331,9 +347,54 @@ export default function DashboardBrowsePage() {
         }
     };
 
+    // Fetch user's bookmarks
+    const fetchBookmarks = async () => {
+        try {
+            const response = await fetchJsonWithAuth<{
+                success: boolean;
+                bookmarks: Array<{ manuscript_id: string }>;
+            }>(getApiUrl('/bookmarks'));
+
+            if (response.success) {
+                const ids = new Set(response.bookmarks.map(b => b.manuscript_id));
+                setBookmarkedIds(ids);
+            }
+        } catch (err) {
+            console.error('Failed to fetch bookmarks:', err);
+        }
+    };
+
+    // Toggle bookmark
+    const toggleBookmark = async (manuscriptId: string) => {
+        try {
+            const response = await fetchJsonWithAuth<{ success: boolean; isBookmarked: boolean }>(
+                getApiUrl('/bookmarks/toggle'),
+                {
+                    method: 'POST',
+                    body: JSON.stringify({ manuscriptId }),
+                }
+            );
+
+            if (response.success) {
+                setBookmarkedIds(prev => {
+                    const newSet = new Set(prev);
+                    if (response.isBookmarked) {
+                        newSet.add(manuscriptId);
+                    } else {
+                        newSet.delete(manuscriptId);
+                    }
+                    return newSet;
+                });
+            }
+        } catch (err) {
+            console.error('Failed to toggle bookmark:', err);
+        }
+    };
+
     useEffect(() => {
         fetchFilters();
         fetchManuscripts();
+        fetchBookmarks();
     }, []);
 
     useEffect(() => {
@@ -663,7 +724,12 @@ export default function DashboardBrowsePage() {
                         gap: '1.5rem',
                     }}>
                         {manuscripts.map((manuscript) => (
-                            <ManuscriptCard key={manuscript._id} manuscript={manuscript} />
+                            <ManuscriptCard
+                                key={manuscript._id}
+                                manuscript={manuscript}
+                                isBookmarked={bookmarkedIds.has(manuscript._id)}
+                                onToggleBookmark={toggleBookmark}
+                            />
                         ))}
                     </div>
 

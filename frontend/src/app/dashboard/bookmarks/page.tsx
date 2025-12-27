@@ -1,11 +1,37 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { fetchJsonWithAuth, getApiUrl, isAuthenticated } from '@/lib/api';
 
-// Icon Components
+// Types
+interface Bookmark {
+    id: string;
+    manuscript_id: string;
+    notes?: string;
+    created_at: string;
+}
+
+interface Manuscript {
+    _id: string;
+    title: string;
+    author: string;
+    category: string;
+    languages?: string[];
+    visibility: string;
+    abstract?: string;
+}
+
+// Icons
 const BookmarkIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+);
+
+const BookmarkOutlineIcon = () => (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
     </svg>
 );
@@ -13,217 +39,328 @@ const BookmarkIcon = () => (
 const TrashIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 6h18" />
-        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
     </svg>
 );
 
-const ExternalLinkIcon = () => (
+const EyeIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-        <polyline points="15 3 21 3 21 9" />
-        <line x1="10" y1="14" x2="21" y2="3" />
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
     </svg>
 );
 
-// Sample bookmarks data
-const bookmarks = [
-    { id: 1, title: 'Ayurvedic Pharmacopoeia of India - Volume 3', author: 'Government of India', language: 'Sanskrit', addedDate: '2024-12-20' },
-    { id: 2, title: 'Traditional Healing Practices of Kerala', author: 'Dr. K. Narayanan', language: 'Malayalam', addedDate: '2024-12-18' },
-    { id: 3, title: 'Vedic Astronomy and Mathematics', author: 'Aryabhata', language: 'Sanskrit', addedDate: '2024-12-15' },
-    { id: 4, title: 'Yoga Sutras of Patanjali', author: 'Patanjali', language: 'Sanskrit', addedDate: '2024-12-10' },
-];
-
-// Bookmark Row Component
-const BookmarkRow = ({ bookmark }: { bookmark: typeof bookmarks[0] }) => (
-    <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
-        padding: '1rem 1.5rem',
-        background: 'white',
-        borderBottom: '1px solid #f1f5f9',
-        transition: 'all 0.15s',
-    }}>
-        <div style={{
-            width: '40px',
-            height: '40px',
-            background: '#fef3c7',
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#b45309',
-            flexShrink: 0,
-        }}>
-            <BookmarkIcon />
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-            <Link href="#" style={{
-                fontSize: '0.9375rem',
-                fontWeight: 500,
-                color: '#0f172a',
-                textDecoration: 'none',
-                display: 'block',
-                marginBottom: '0.25rem',
-            }}>
-                {bookmark.title}
-            </Link>
-            <div style={{
-                fontSize: '0.8125rem',
-                color: '#64748b',
-            }}>
-                {bookmark.author} · {bookmark.language}
-            </div>
-        </div>
-
-        <div style={{
-            fontSize: '0.8125rem',
-            color: '#94a3b8',
-            whiteSpace: 'nowrap',
-        }}>
-            Added {new Date(bookmark.addedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-        </div>
-
-        <div style={{
-            display: 'flex',
-            gap: '0.5rem',
-        }}>
-            <button style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.375rem',
-                padding: '0.5rem 0.75rem',
-                fontSize: '0.8125rem',
-                fontWeight: 500,
-                color: '#0f172a',
-                background: '#f8fafc',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-            }}>
-                <ExternalLinkIcon />
-                View
-            </button>
-            <button style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.5rem',
-                color: '#dc2626',
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-            }}>
-                <TrashIcon />
-            </button>
-        </div>
-    </div>
+const LoadingSpinner = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+        <circle cx="12" cy="12" r="10" opacity="0.25" />
+        <path d="M12 2a10 10 0 0 1 10 10" />
+    </svg>
 );
 
 export default function BookmarksPage() {
+    const router = useRouter();
+    const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+    const [manuscripts, setManuscripts] = useState<Record<string, Manuscript>>({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (!isAuthenticated()) {
+            router.push('/login');
+            return;
+        }
+        fetchBookmarks();
+    }, [router]);
+
+    const fetchBookmarks = async () => {
+        try {
+            setLoading(true);
+            setError('');
+
+            const response = await fetchJsonWithAuth<{
+                success: boolean;
+                bookmarks: Bookmark[];
+                error?: string;
+            }>(getApiUrl('/bookmarks'));
+
+            if (response.success) {
+                setBookmarks(response.bookmarks);
+
+                // Fetch manuscript details for each bookmark
+                const manuscriptPromises = response.bookmarks.map(async (bookmark) => {
+                    try {
+                        const manuscriptRes = await fetchJsonWithAuth<{
+                            success: boolean;
+                            manuscript: Manuscript;
+                        }>(getApiUrl(`/manuscripts/${bookmark.manuscript_id}`));
+
+                        if (manuscriptRes.success) {
+                            return { id: bookmark.manuscript_id, manuscript: manuscriptRes.manuscript };
+                        }
+                    } catch (err) {
+                        console.error(`Failed to fetch manuscript ${bookmark.manuscript_id}:`, err);
+                    }
+                    return null;
+                });
+
+                const results = await Promise.all(manuscriptPromises);
+                const manuscriptMap: Record<string, Manuscript> = {};
+                results.forEach((result) => {
+                    if (result) {
+                        manuscriptMap[result.id] = result.manuscript;
+                    }
+                });
+                setManuscripts(manuscriptMap);
+            } else {
+                setError(response.error || 'Failed to load bookmarks');
+            }
+        } catch (err) {
+            console.error('Fetch bookmarks error:', err);
+            setError('Failed to load bookmarks');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const removeBookmark = async (manuscriptId: string) => {
+        try {
+            const response = await fetchJsonWithAuth<{ success: boolean }>(
+                getApiUrl(`/bookmarks/${manuscriptId}`),
+                { method: 'DELETE' }
+            );
+
+            if (response.success) {
+                setBookmarks(bookmarks.filter((b) => b.manuscript_id !== manuscriptId));
+            }
+        } catch (err) {
+            console.error('Remove bookmark error:', err);
+        }
+    };
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
+    };
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh' }}>
+                <LoadingSpinner />
+                <span style={{ marginLeft: '1rem', color: '#64748b' }}>Loading bookmarks...</span>
+            </div>
+        );
+    }
+
     return (
-        <div>
-            {/* Page Header */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '2rem',
-            }}>
-                <div>
-                    <h1 style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 600,
-                        color: '#0f172a',
-                        margin: 0,
-                    }}>
-                        Bookmarks
-                    </h1>
-                    <p style={{
-                        fontSize: '0.9375rem',
-                        color: '#64748b',
-                        marginTop: '0.25rem',
-                    }}>
-                        Your saved manuscripts for quick access
-                    </p>
-                </div>
-                <span style={{
-                    padding: '0.375rem 0.75rem',
-                    background: '#f1f5f9',
-                    color: '#475569',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    borderRadius: '999px',
-                }}>
-                    {bookmarks.length} items
-                </span>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            <div style={{ marginBottom: '2rem' }}>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>
+                    Your Bookmarks
+                </h1>
+                <p style={{ color: '#64748b', marginTop: '0.5rem' }}>
+                    Manuscripts you've saved for later • {bookmarks.length} saved
+                </p>
             </div>
 
-            {/* Bookmarks List */}
-            <div style={{
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '12px',
-                overflow: 'hidden',
-            }}>
-                {bookmarks.length > 0 ? (
-                    bookmarks.map((bookmark) => (
-                        <BookmarkRow key={bookmark.id} bookmark={bookmark} />
-                    ))
-                ) : (
+            {error && (
+                <div style={{
+                    padding: '1rem',
+                    background: '#fee2e2',
+                    color: '#991b1b',
+                    borderRadius: '0.5rem',
+                    marginBottom: '1rem',
+                }}>
+                    {error}
+                </div>
+            )}
+
+            {bookmarks.length === 0 ? (
+                <div style={{
+                    background: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    padding: '4rem 2rem',
+                    textAlign: 'center',
+                }}>
                     <div style={{
-                        padding: '4rem 2rem',
-                        textAlign: 'center',
+                        width: '80px',
+                        height: '80px',
+                        background: '#f8fafc',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 1.5rem',
+                        color: '#94a3b8',
                     }}>
-                        <div style={{
-                            width: '64px',
-                            height: '64px',
-                            background: '#f8fafc',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            margin: '0 auto 1rem',
-                            color: '#94a3b8',
-                        }}>
-                            <BookmarkIcon />
-                        </div>
-                        <h3 style={{
-                            fontSize: '1rem',
-                            fontWeight: 600,
-                            color: '#0f172a',
-                            marginBottom: '0.5rem',
-                        }}>
-                            No bookmarks yet
-                        </h3>
-                        <p style={{
-                            fontSize: '0.875rem',
-                            color: '#64748b',
-                            marginBottom: '1.5rem',
-                        }}>
-                            Start exploring manuscripts and save your favorites here
-                        </p>
-                        <Link href="/dashboard/manuscripts" style={{
-                            display: 'inline-flex',
-                            padding: '0.5rem 1rem',
-                            fontSize: '0.875rem',
-                            fontWeight: 500,
-                            color: 'white',
-                            textDecoration: 'none',
-                            background: '#059669',
-                            borderRadius: '0.5rem',
-                        }}>
-                            Browse Manuscripts
-                        </Link>
+                        <BookmarkOutlineIcon />
                     </div>
-                )}
-            </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#0f172a', marginBottom: '0.5rem' }}>
+                        No bookmarks yet
+                    </h3>
+                    <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.5rem', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
+                        Browse the manuscript archive and click the bookmark icon to save manuscripts for later access
+                    </p>
+                    <Link href="/dashboard/browse" style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.625rem 1.25rem',
+                        background: '#059669',
+                        color: 'white',
+                        textDecoration: 'none',
+                        borderRadius: '0.5rem',
+                        fontSize: '0.9375rem',
+                        fontWeight: 500,
+                    }}>
+                        Browse Archive
+                    </Link>
+                </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {bookmarks.map((bookmark) => {
+                        const manuscript = manuscripts[bookmark.manuscript_id];
+
+                        return (
+                            <div
+                                key={bookmark.id}
+                                style={{
+                                    background: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '12px',
+                                    padding: '1.25rem',
+                                    display: 'flex',
+                                    gap: '1rem',
+                                    alignItems: 'flex-start',
+                                }}
+                            >
+                                <div style={{
+                                    width: '44px',
+                                    height: '44px',
+                                    background: '#fef3c7',
+                                    borderRadius: '10px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#d97706',
+                                    flexShrink: 0,
+                                }}>
+                                    <BookmarkIcon />
+                                </div>
+
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    {manuscript ? (
+                                        <>
+                                            <Link
+                                                href={`/dashboard/manuscripts/${bookmark.manuscript_id}`}
+                                                style={{
+                                                    fontSize: '1rem',
+                                                    fontWeight: 600,
+                                                    color: '#0f172a',
+                                                    textDecoration: 'none',
+                                                    display: 'block',
+                                                    marginBottom: '0.25rem',
+                                                }}
+                                            >
+                                                {manuscript.title}
+                                            </Link>
+                                            <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem' }}>
+                                                by {manuscript.author}
+                                            </p>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                <span style={{
+                                                    padding: '0.25rem 0.5rem',
+                                                    background: '#f1f5f9',
+                                                    color: '#475569',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 500,
+                                                    borderRadius: '4px',
+                                                }}>
+                                                    {manuscript.category}
+                                                </span>
+                                                <span style={{
+                                                    padding: '0.25rem 0.5rem',
+                                                    background: manuscript.visibility === 'public' ? '#dcfce7' : '#fef3c7',
+                                                    color: manuscript.visibility === 'public' ? '#166534' : '#92400e',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 500,
+                                                    borderRadius: '4px',
+                                                }}>
+                                                    {manuscript.visibility}
+                                                </span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a' }}>
+                                                Manuscript
+                                            </div>
+                                            <p style={{ fontSize: '0.875rem', color: '#94a3b8' }}>
+                                                Loading details...
+                                            </p>
+                                        </>
+                                    )}
+                                    <p style={{
+                                        fontSize: '0.75rem',
+                                        color: '#94a3b8',
+                                        marginTop: '0.5rem',
+                                    }}>
+                                        Saved on {formatDate(bookmark.created_at)}
+                                    </p>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <Link
+                                        href={`/dashboard/manuscripts/${bookmark.manuscript_id}`}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.375rem',
+                                            padding: '0.5rem 0.75rem',
+                                            background: '#059669',
+                                            color: 'white',
+                                            textDecoration: 'none',
+                                            borderRadius: '6px',
+                                            fontSize: '0.8125rem',
+                                            fontWeight: 500,
+                                        }}
+                                    >
+                                        <EyeIcon /> View
+                                    </Link>
+                                    <button
+                                        onClick={() => removeBookmark(bookmark.manuscript_id)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '0.5rem',
+                                            background: '#fee2e2',
+                                            color: '#991b1b',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                        }}
+                                        title="Remove bookmark"
+                                    >
+                                        <TrashIcon />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            <style jsx>{`
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
         </div>
     );
 }

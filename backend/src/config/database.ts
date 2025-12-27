@@ -239,6 +239,16 @@ async function initializePostgresTables(): Promise<void> {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    -- Bookmarks table
+    CREATE TABLE IF NOT EXISTS bookmarks (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      manuscript_id VARCHAR(100) NOT NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, manuscript_id)
+    );
+
     -- Create indexes
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
@@ -252,6 +262,8 @@ async function initializePostgresTables(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_manuscript_access_user_id ON manuscript_access(user_id);
     CREATE INDEX IF NOT EXISTS idx_manuscript_access_watermark_id ON manuscript_access(watermark_id);
     CREATE INDEX IF NOT EXISTS idx_verification_documents_user_id ON verification_documents(user_id);
+    CREATE INDEX IF NOT EXISTS idx_bookmarks_user_id ON bookmarks(user_id);
+    CREATE INDEX IF NOT EXISTS idx_bookmarks_manuscript_id ON bookmarks(manuscript_id);
   `;
 
     await _pgPool!.query(createTablesQuery);

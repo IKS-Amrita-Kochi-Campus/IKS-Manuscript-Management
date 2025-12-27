@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -35,7 +35,17 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [info, setInfo] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Check for session expired message on mount
+    useEffect(() => {
+        const authMessage = sessionStorage.getItem('authMessage');
+        if (authMessage) {
+            setInfo(authMessage);
+            sessionStorage.removeItem('authMessage');
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -156,6 +166,20 @@ export default function LoginPage() {
                     }}>
                         Sign in to continue your research
                     </p>
+
+                    {info && (
+                        <div style={{
+                            padding: '0.75rem 1rem',
+                            background: '#dbeafe',
+                            border: '1px solid #bfdbfe',
+                            borderRadius: '0.5rem',
+                            marginBottom: '1.5rem',
+                            fontSize: '0.875rem',
+                            color: '#1e40af',
+                        }}>
+                            {info}
+                        </div>
+                    )}
 
                     {error && (
                         <div style={{
