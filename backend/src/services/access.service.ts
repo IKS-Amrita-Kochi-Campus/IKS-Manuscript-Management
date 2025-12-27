@@ -132,11 +132,23 @@ export async function createAccessRequest(
  * Get user's access requests
  */
 export async function getUserAccessRequests(userId: string): Promise<AccessResult> {
+    const Manuscript = getManuscriptModel();
     const requests = await accessRequestRepo.findByRequester(userId);
+
+    // Populate manuscript titles
+    const populatedRequests = await Promise.all(
+        requests.map(async (req) => {
+            const manuscript = await Manuscript.findById(req.manuscript_id);
+            return {
+                ...req,
+                manuscript_title: manuscript?.title || 'Unknown Manuscript',
+            };
+        })
+    );
 
     return {
         success: true,
-        requests,
+        requests: populatedRequests,
     };
 }
 
