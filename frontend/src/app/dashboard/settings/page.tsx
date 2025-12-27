@@ -176,8 +176,8 @@ export default function SettingsPage() {
             return;
         }
 
-        if (newPassword.length < 12) {
-            setError('Password must be at least 12 characters');
+        if (newPassword.length < 8) {
+            setError('Password must be at least 8 characters');
             return;
         }
 
@@ -687,7 +687,7 @@ export default function SettingsPage() {
                                             }}
                                         />
                                         <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                                            Must be at least 12 characters with uppercase, lowercase, numbers, and symbols
+                                            Must be at least 8 characters
                                         </p>
                                     </div>
 

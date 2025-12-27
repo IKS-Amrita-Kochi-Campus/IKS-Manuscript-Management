@@ -60,6 +60,25 @@ export async function getMyRequests(req: Request, res: Response): Promise<void> 
 }
 
 /**
+ * Check if user has pending request for a manuscript
+ */
+export async function checkRequest(req: Request, res: Response): Promise<void> {
+    if (!req.user) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+    }
+
+    const { manuscriptId } = req.params;
+    const result = await accessService.checkPendingRequest(manuscriptId, req.user.userId);
+
+    res.json({
+        success: true,
+        hasPendingRequest: result.hasPendingRequest,
+        request: result.request,
+    });
+}
+
+/**
  * Get access requests for a manuscript
  */
 export async function getManuscriptRequests(req: Request, res: Response): Promise<void> {

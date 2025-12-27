@@ -153,6 +153,25 @@ export async function getUserAccessRequests(userId: string): Promise<AccessResul
 }
 
 /**
+ * Check if user has a pending request for a manuscript
+ */
+export async function checkPendingRequest(
+    manuscriptId: string,
+    userId: string
+): Promise<{ hasPendingRequest: boolean; request?: Record<string, unknown> }> {
+    const requests = await accessRequestRepo.findByRequester(userId);
+
+    const pendingRequest = requests.find(
+        (r) => r.manuscript_id === manuscriptId && r.status === 'PENDING'
+    );
+
+    return {
+        hasPendingRequest: !!pendingRequest,
+        request: pendingRequest,
+    };
+}
+
+/**
  * Get access requests for a manuscript
  */
 export async function getManuscriptAccessRequests(

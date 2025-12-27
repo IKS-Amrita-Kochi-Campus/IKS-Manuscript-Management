@@ -85,7 +85,15 @@ export default function RegisterPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || 'Registration failed. Please try again.');
+                // Check for validation errors with details
+                if (data.details && Array.isArray(data.details)) {
+                    const messages = data.details.map((d: { field: string; message: string }) =>
+                        `${d.field}: ${d.message}`
+                    ).join('. ');
+                    setError(messages || data.error || 'Registration failed. Please try again.');
+                } else {
+                    setError(data.error || 'Registration failed. Please try again.');
+                }
                 setLoading(false);
                 return;
             }
@@ -387,7 +395,7 @@ export default function RegisterPage() {
                             <div style={{ position: 'relative' }}>
                                 <input
                                     type={showPassword ? 'text' : 'password'}
-                                    placeholder="Create a strong password"
+                                    placeholder="Minimum 8 characters"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required

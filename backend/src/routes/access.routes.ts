@@ -15,6 +15,9 @@ router.post('/', requireUser, validateBody(accessRequestSchema), accessControlle
 // Get my requests
 router.get('/my', accessController.getMyRequests);
 
+// Check if user has pending request for a manuscript
+router.get('/check/:manuscriptId', accessController.checkRequest);
+
 // Get requests for a manuscript (owner/reviewer only)
 router.get('/manuscript/:manuscriptId', accessController.getManuscriptRequests);
 
