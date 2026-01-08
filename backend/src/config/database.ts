@@ -42,12 +42,35 @@ export function getPgPool(): pg.Pool {
 }
 
 /**
+ * Process MongoDB URI to handle localhost connections with proper auth
+ * For local MongoDB with authentication, ensure authSource=admin is set
+ */
+function processMongoUri(uri: string): string {
+    const isLocalhost = uri.includes('localhost') || uri.includes('127.0.0.1');
+
+    // Check if URI has credentials (contains @ after ://)
+    const hasCredentials = uri.includes('@');
+
+    if (isLocalhost && hasCredentials) {
+        // For localhost with auth, add authSource=admin if not present
+        if (!uri.includes('authSource')) {
+            const separator = uri.includes('?') ? '&' : '?';
+            return `${uri}${separator}authSource=admin`;
+        }
+    }
+
+    // Return URI as-is (works for both remote and localhost without auth)
+    return uri;
+}
+
+/**
  * Connect to MongoDB Logs database (iks_log)
  */
 export async function connectMongoLogs(): Promise<void> {
     try {
         console.log('🔗 Starting MongoDB Logs Connection...');
-        _mongoLogsConnection = mongoose.createConnection(config.mongoUriLogs);
+        const uri = processMongoUri(config.mongoUriLogs);
+        _mongoLogsConnection = mongoose.createConnection(uri);
 
         _mongoLogsConnection.on('connected', () => {
             console.log('🍃 MongoDB connected to Logs DB');
@@ -74,7 +97,8 @@ export async function connectMongoLogs(): Promise<void> {
 export async function connectMongoManuscripts(): Promise<void> {
     try {
         console.log('🔗 Starting MongoDB Manuscripts Connection...');
-        _mongoManuscriptsConnection = mongoose.createConnection(config.mongoUriManuscripts);
+        const uri = processMongoUri(config.mongoUriManuscripts);
+        _mongoManuscriptsConnection = mongoose.createConnection(uri);
 
         _mongoManuscriptsConnection.on('connected', () => {
             console.log('🍃 MongoDB connected to Manuscripts DB');
