@@ -1,0 +1,187 @@
+[
+  {
+    "_id": "694ea4d5820835c8d832250c",
+    "title": "Ramayana",
+    "alternateTitle": "",
+    "author": "Kiran",
+    "subject": [
+      "Mythology"
+    ],
+    "category": "Epic",
+    "languages": [
+      "Malayalam"
+    ],
+    "script": [],
+    "dimensions": {
+      "unit": "cm"
+    },
+    "centuryEstimate": "",
+    "origin": "",
+    "repository": "Amrita",
+    "abstract": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "tableOfContents": [],
+    "relatedManuscripts": [],
+    "ownerId": "bc1c07bb-d2bc-430f-ab1f-c605ffdde2e4",
+    "visibility": "restricted",
+    "accessLevel": {
+      "metadata": "public",
+      "content": "approved",
+      "download": "approved"
+    },
+    "status": "draft",
+    "viewCount": 2,
+    "downloadCount": 0,
+    "accessRequestCount": 0,
+    "keywords": [],
+    "tags": [],
+    "files": [],
+    "createdAt": "2025-12-26T15:08:05.719Z",
+    "updatedAt": "2025-12-26T15:25:32.922Z",
+    "__v": 0
+  },
+  {
+    "_id": "694ea7e2c874ba326be39c94",
+    "title": "Ramayana",
+    "alternateTitle": "",
+    "author": "Kiran",
+    "subject": [
+      "Mythology"
+    ],
+    "category": "Epic",
+    "languages": [
+      "Malayalam"
+    ],
+    "script": [],
+    "dimensions": {
+      "unit": "cm"
+    },
+    "centuryEstimate": "",
+    "origin": "",
+    "repository": "Amrita",
+    "abstract": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "tableOfContents": [],
+    "relatedManuscripts": [],
+    "ownerId": "bc1c07bb-d2bc-430f-ab1f-c605ffdde2e4",
+    "visibility": "restricted",
+    "accessLevel": {
+      "metadata": "public",
+      "content": "approved",
+      "download": "approved"
+    },
+    "status": "draft",
+    "viewCount": 6,
+    "downloadCount": 0,
+    "accessRequestCount": 0,
+    "keywords": [],
+    "tags": [],
+    "files": [],
+    "createdAt": "2025-12-26T15:21:06.067Z",
+    "updatedAt": "2025-12-27T10:47:28.570Z",
+    "__v": 0
+  },
+  {
+    "_id": "694ea8d8c874ba326be39cf7",
+    "title": "Ramayana",
+    "alternateTitle": "",
+    "author": "Kiran",
+    "subject": [
+      "Mythology"
+    ],
+    "category": "Epic",
+    "languages": [
+      "Malayalam"
+    ],
+    "script": [],
+    "dimensions": {
+      "unit": "cm"
+    },
+    "centuryEstimate": "1800 CE",
+    "origin": "Kerala",
+    "repository": "Amrita",
+    "abstract": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "tableOfContents": [],
+    "relatedManuscripts": [],
+    "ownerId": "bc1c07bb-d2bc-430f-ab1f-c605ffdde2e4",
+    "visibility": "restricted",
+    "accessLevel": {
+      "metadata": "public",
+      "content": "approved",
+      "download": "approved"
+    },
+    "status": "published",
+    "viewCount": 76,
+    "downloadCount": 0,
+    "accessRequestCount": 0,
+    "keywords": [],
+    "tags": [],
+    "files": [
+      {
+        "type": "pdf",
+        "originalName": "ticket.pdf",
+        "mimeType": "application/pdf",
+        "size": 280092,
+        "encryptedPath": "manuscripts/694ea8d8c874ba326be39cf7/7894e4e6-4377-41b7-8539-3b55c921ee06.enc",
+        "checksum": "614958e64af95872bcba5c966083d57063b8554343debc31cbcbdf164d0f6848",
+        "uploadedAt": "2025-12-26T15:25:17.051Z",
+        "_id": "694ea8ddc874ba326be39cfc"
+      }
+    ],
+    "createdAt": "2025-12-26T15:25:12.162Z",
+    "updatedAt": "2026-01-01T09:32:39.370Z",
+    "__v": 0,
+    "publishedAt": "2025-12-26T15:55:38.740Z",
+    "reviewedBy": "d740fdb3-a4f3-4163-9b14-00cf50cf4dff"
+  },
+  {
+    "_id": "694ff3b63d22a7f19a45f995",
+    "title": "Valmiki",
+    "alternateTitle": "",
+    "author": "Kiran",
+    "subject": [
+      "Mythology"
+    ],
+    "category": "Epic",
+    "languages": [
+      "Malayalam",
+      "Hindi"
+    ],
+    "script": [],
+    "dimensions": {
+      "unit": "cm"
+    },
+    "centuryEstimate": "15th Centuary",
+    "origin": "Kerala",
+    "repository": "Amrita",
+    "abstract": "Password must be at least 12 characters long",
+    "tableOfContents": [],
+    "relatedManuscripts": [],
+    "ownerId": "e1ddd40b-04cd-495f-8bf2-cbe8250ce7b7",
+    "visibility": "restricted",
+    "accessLevel": {
+      "metadata": "public",
+      "content": "approved",
+      "download": "approved"
+    },
+    "status": "review",
+    "viewCount": 6,
+    "downloadCount": 0,
+    "accessRequestCount": 0,
+    "keywords": [],
+    "tags": [],
+    "files": [
+      {
+        "type": "pdf",
+        "originalName": "ticket.pdf",
+        "mimeType": "application/pdf",
+        "size": 272891,
+        "encryptedPath": "manuscripts/694ff3b63d22a7f19a45f995/a8f3d31e-93af-4063-afe0-27284cdc5408.enc",
+        "checksum": "5953213e2535201bd5116b12eb23dd3b0e42ff3ed3f6719aeb82d22577054c3f",
+        "uploadedAt": "2025-12-27T14:58:18.772Z",
+        "_id": "694ff40a3d22a7f19a45f99a"
+      }
+    ],
+    "createdAt": "2025-12-27T14:56:54.381Z",
+    "updatedAt": "2025-12-27T15:08:23.266Z",
+    "__v": 0
+  }
+]

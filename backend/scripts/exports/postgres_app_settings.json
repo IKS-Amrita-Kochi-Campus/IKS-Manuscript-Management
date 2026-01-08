@@ -1,0 +1,17 @@
+[
+  {
+    "key": "watermark",
+    "value": {
+      "text": "Amrita Vishwa Vidyapeetham Kochi",
+      "color": "#000000",
+      "enabled": true,
+      "opacity": 0.5,
+      "fontSize": 17,
+      "position": "diagonal",
+      "includeUserId": true,
+      "includeTimestamp": true
+    },
+    "updated_at": "2025-12-27T05:29:03.580Z",
+    "updated_by": "7853d4b1-1bf1-466d-ac37-1794321100c2"
+  }
+]
