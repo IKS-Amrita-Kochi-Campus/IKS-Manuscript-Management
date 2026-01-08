@@ -101,15 +101,24 @@ export async function connectMongoManuscripts(): Promise<void> {
 export async function connectPostgres(): Promise<void> {
     try {
         console.log('🔗 Starting PostgreSQL Connection...');
-        // Load CA certificate if available
-        let sslConfig: pg.PoolConfig['ssl'] = { rejectUnauthorized: false };
 
-        if (fs.existsSync(CA_CERT_PATH)) {
-            // console.log('📜 Loading CA certificate from:', CA_CERT_PATH);
-            sslConfig = {
-                rejectUnauthorized: true,
-                ca: fs.readFileSync(CA_CERT_PATH).toString(),
-            };
+        // Check if connecting to localhost (no SSL needed for local development)
+        const isLocalhost = config.postgresUri.includes('localhost') || config.postgresUri.includes('127.0.0.1');
+
+        // Configure SSL based on environment
+        let sslConfig: pg.PoolConfig['ssl'] = false;
+
+        if (!isLocalhost) {
+            // For remote connections, use SSL
+            if (fs.existsSync(CA_CERT_PATH)) {
+                // console.log('📜 Loading CA certificate from:', CA_CERT_PATH);
+                sslConfig = {
+                    rejectUnauthorized: true,
+                    ca: fs.readFileSync(CA_CERT_PATH).toString(),
+                };
+            } else {
+                sslConfig = { rejectUnauthorized: false };
+            }
         }
 
         _pgPool = new Pool({

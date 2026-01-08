@@ -74,7 +74,7 @@ const AuditLogSchema = new Schema<IAuditLog>(
             region: { type: String },
         },
         metadata: { type: Schema.Types.Mixed },
-        timestamp: { type: Date, default: Date.now, index: true },
+        timestamp: { type: Date, default: Date.now }, // TTL index defined separately below
     },
     {
         collection: 'IKS_logs',
