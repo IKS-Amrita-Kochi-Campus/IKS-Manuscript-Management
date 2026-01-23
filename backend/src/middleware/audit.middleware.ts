@@ -5,6 +5,36 @@ import { getAuditLogModel } from '../models/index.js';
 const sensitiveFields = ['password', 'passwordHash', 'token', 'refreshToken', 'accessToken', 'secret'];
 
 /**
+ * Extract clean IP address from request
+ * Handles Cloudflare tunnel and standard reverse proxies
+ */
+function getClientIp(req: Request): string {
+    // Check for Cloudflare header first (most reliable for Cloudflare tunnels)
+    const cfConnectingIp = req.headers['cf-connecting-ip'] as string | undefined;
+    if (cfConnectingIp) {
+        return cfConnectingIp;
+    }
+    
+    // Check for standard X-Forwarded-For header
+    const xForwardedFor = req.headers['x-forwarded-for'] as string | undefined;
+    if (xForwardedFor) {
+        // X-Forwarded-For can contain multiple IPs, take the first one (client IP)
+        const ips = xForwardedFor.split(',').map(ip => ip.trim());
+        return ips[0];
+    }
+    
+    // Fallback to Express req.ip
+    let ip = req.ip || req.socket.remoteAddress || 'unknown';
+    
+    // Remove IPv4-mapped IPv6 prefix
+    if (ip && ip.startsWith('::ffff:')) {
+        ip = ip.substring(7); // Remove '::ffff:' prefix
+    }
+    
+    return ip;
+}
+
+/**
  * Sanitize object by removing sensitive fields
  */
 function sanitizeObject(obj: Record<string, unknown>): Record<string, unknown> {
@@ -96,7 +126,7 @@ export function auditLog(req: Request, res: Response, next: NextFunction): void 
                     body: req.body && Object.keys(req.body).length > 0 ? sanitizeObject(req.body) : undefined,
                     statusCode: res.statusCode,
                     responseTime,
-                    ipAddress: req.ip || req.socket.remoteAddress || 'unknown',
+                    ipAddress: getClientIp(req),
                     userAgent: req.headers['user-agent'],
                     timestamp: new Date(),
                 });

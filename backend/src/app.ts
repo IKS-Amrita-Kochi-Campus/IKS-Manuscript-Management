@@ -17,6 +17,10 @@ if (config.env !== 'production') {
 
 const app = express();
 
+// Trust proxy - required for correct client IP extraction
+// Set to 1 for single reverse proxy, adjust number based on your setup
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
@@ -57,12 +61,16 @@ if (config.env !== 'test') {
 
 // Rate limiting
 app.use(config.apiPrefix, apiLimiter);
+app.use(apiLimiter); // Also apply globally as fallback
 
 // Audit logging
 app.use(config.apiPrefix, auditLog);
+app.use(auditLog); // Also apply globally as fallback
 
 // API routes
 app.use(config.apiPrefix, routes);
+// Fallback routes without API prefix (for backward compatibility)
+app.use(routes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
