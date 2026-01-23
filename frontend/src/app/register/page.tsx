@@ -1,8 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
+interface University {
+    name: string;
+    country: string;
+    domains: string[];
+    web_pages: string[];
+    alpha_two_code: string;
+    "state-province": string | null;
+}
 
 // Icon Components
 const EyeIcon = () => (
@@ -49,6 +59,35 @@ export default function RegisterPage() {
     const [email, setEmail] = useState('');
     const [institution, setInstitution] = useState('');
     const [password, setPassword] = useState('');
+
+    // University Search State
+    const [suggestions, setSuggestions] = useState<University[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    useEffect(() => {
+        const fetchUniversities = async () => {
+            if (institution.length < 3) {
+                setSuggestions([]);
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://universities.hipolabs.com/search?name=${encodeURIComponent(institution)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setSuggestions(data.slice(0, 10)); // Limit to 10 suggestions
+                }
+            } catch (error) {
+                console.error('Error fetching universities:', error);
+            }
+        };
+
+        const timeoutId = setTimeout(() => {
+            fetchUniversities();
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [institution]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -104,9 +143,13 @@ export default function RegisterPage() {
             setTimeout(() => {
                 router.push('/login');
             }, 2000);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Registration error:', err);
-            setError('Unable to connect to the server. Please try again.');
+            if (err.message === 'Failed to fetch') {
+                setError('Unable to reach the server. Please check your internet connection or try again later.');
+            } else {
+                setError('An unexpected error occurred. Please try again.');
+            }
             setLoading(false);
         }
     };
@@ -130,19 +173,21 @@ export default function RegisterPage() {
             }}>
                 <div style={{ maxWidth: '400px', textAlign: 'center' }}>
                     <div style={{
-                        width: '64px',
-                        height: '64px',
-                        background: '#059669',
-                        borderRadius: '16px',
+                        position: 'relative',
+                        width: '80px',
+                        height: '80px',
+                        margin: '0 auto 2rem',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '24px',
-                        fontWeight: 700,
-                        color: 'white',
-                        margin: '0 auto 2rem',
                     }}>
-                        IKS
+                        <Image
+                            src="/assets/iks.webp"
+                            alt="IKS Logo"
+                            fill
+                            style={{ objectFit: 'contain' }}
+                            priority
+                        />
                     </div>
                     <h1 style={{
                         fontSize: '1.75rem',
@@ -167,6 +212,7 @@ export default function RegisterPage() {
                         flexDirection: 'column',
                         gap: '0.75rem',
                         textAlign: 'left',
+                        marginBottom: '3rem',
                     }}>
                         {[
                             'Access 12,000+ digitized manuscripts',
@@ -197,6 +243,34 @@ export default function RegisterPage() {
                                 {feature}
                             </div>
                         ))}
+                    </div>
+
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '1.5rem',
+                        opacity: 0.8,
+                    }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Supported By</p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                <Image
+                                    src="/assets/govt.webp"
+                                    alt="Government of India"
+                                    height={80}
+                                    width={80}
+                                    style={{ objectFit: 'contain' }}
+                                />
+                                <Image
+                                    src="/assets/amrita.webp"
+                                    alt="Amrita Vishwa Vidyapeetham"
+                                    height={80}
+                                    width={200}
+                                    style={{ objectFit: 'contain' }}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -363,23 +437,72 @@ export default function RegisterPage() {
                             }}>
                                 Institution / Organization
                             </label>
-                            <input
-                                type="text"
-                                placeholder="University or Research Institute"
-                                value={institution}
-                                onChange={(e) => setInstitution(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    height: '44px',
-                                    padding: '0 0.875rem',
-                                    fontSize: '0.9375rem',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '0.5rem',
-                                    background: 'white',
-                                    color: '#0f172a',
-                                    outline: 'none',
-                                }}
-                            />
+
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Search your university or organization"
+                                    value={institution}
+                                    onChange={(e) => {
+                                        setInstitution(e.target.value);
+                                        setShowSuggestions(true);
+                                    }}
+                                    onFocus={() => setShowSuggestions(true)}
+                                    style={{
+                                        width: '100%',
+                                        height: '44px',
+                                        padding: '0 0.875rem',
+                                        fontSize: '0.9375rem',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '0.5rem',
+                                        background: 'white',
+                                        color: '#0f172a',
+                                        outline: 'none',
+                                    }}
+                                />
+                                {showSuggestions && suggestions.length > 0 && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        left: 0,
+                                        right: 0,
+                                        maxHeight: '200px',
+                                        overflowY: 'auto',
+                                        background: 'white',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '0.5rem',
+                                        marginTop: '4px',
+                                        zIndex: 10,
+                                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                                    }}>
+                                        {suggestions.map((uni, index) => (
+                                            <div
+                                                key={index}
+                                                onClick={() => {
+                                                    setInstitution(uni.name);
+                                                    setShowSuggestions(false);
+                                                }}
+                                                style={{
+                                                    padding: '0.75rem 1rem',
+                                                    fontSize: '0.875rem',
+                                                    color: '#0f172a',
+                                                    cursor: 'pointer',
+                                                    borderBottom: index < suggestions.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                                    background: 'white',
+                                                    transition: 'background 0.15s',
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                                            >
+                                                {uni.name}
+                                                <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b' }}>
+                                                    {uni.country}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div style={{ marginBottom: '1.25rem' }}>

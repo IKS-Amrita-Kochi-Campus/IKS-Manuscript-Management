@@ -70,7 +70,9 @@ export async function connectMongoLogs(): Promise<void> {
     try {
         console.log('🔗 Starting MongoDB Logs Connection...');
         const uri = processMongoUri(config.mongoUriLogs);
-        _mongoLogsConnection = mongoose.createConnection(uri);
+        _mongoLogsConnection = mongoose.createConnection(uri, {
+            serverSelectionTimeoutMS: 5000 // 5 second timeout
+        });
 
         _mongoLogsConnection.on('connected', () => {
             console.log('🍃 MongoDB connected to Logs DB');
@@ -98,7 +100,9 @@ export async function connectMongoManuscripts(): Promise<void> {
     try {
         console.log('🔗 Starting MongoDB Manuscripts Connection...');
         const uri = processMongoUri(config.mongoUriManuscripts);
-        _mongoManuscriptsConnection = mongoose.createConnection(uri);
+        _mongoManuscriptsConnection = mongoose.createConnection(uri, {
+            serverSelectionTimeoutMS: 5000 // 5 second timeout
+        });
 
         _mongoManuscriptsConnection.on('connected', () => {
             console.log('🍃 MongoDB connected to Manuscripts DB');
@@ -148,6 +152,7 @@ export async function connectPostgres(): Promise<void> {
         _pgPool = new Pool({
             connectionString: config.postgresUri,
             ssl: sslConfig,
+            connectionTimeoutMillis: 5000 // 5 second timeout
         });
 
         // Test connection
@@ -321,11 +326,20 @@ async function initializePostgresTables(): Promise<void> {
  * Connect to all databases
  */
 export async function connectAllDatabases(): Promise<void> {
-    await Promise.all([
+    const results = await Promise.allSettled([
         connectMongoLogs(),
         connectMongoManuscripts(),
         connectPostgres(),
     ]);
+
+    results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+            const dbNames = ['MongoDB Logs', 'MongoDB Manuscripts', 'PostgreSQL'];
+            console.warn(`⚠️ Warning: Failed to connect to ${dbNames[index]}. Some features may not work. Error: ${result.reason}`);
+        }
+    });
+
+    console.log('ℹ️ Server starting with available database connections...');
 }
 
 /**

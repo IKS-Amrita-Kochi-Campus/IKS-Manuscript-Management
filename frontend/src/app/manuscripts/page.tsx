@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import Header from '../../components/layout/Header';
+import Footer from '../../components/layout/Footer';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -105,147 +107,9 @@ const XIcon = () => (
     </svg>
 );
 
-// Header Component
-const Header = () => (
-    <header style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '64px',
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid #e5e7eb',
-        zIndex: 100,
-    }}>
-        <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '0 2rem',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-        }}>
-            <Link href="/" style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                textDecoration: 'none',
-            }}>
-                <div style={{
-                    width: '36px',
-                    height: '36px',
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '14px',
-                    fontWeight: 700,
-                }}>
-                    IKS
-                </div>
-                <span style={{
-                    fontSize: '1.125rem',
-                    fontWeight: 600,
-                    color: '#0f172a',
-                }}>
-                    Indigenous Knowledge Systems
-                </span>
-            </Link>
+// Header Component removed (using shared component)
 
-            <nav style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '2rem',
-            }}>
-                <Link href="/manuscripts" style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: '#059669',
-                    textDecoration: 'none',
-                }}>
-                    Manuscripts
-                </Link>
-                <Link href="/about" style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: '#475569',
-                    textDecoration: 'none',
-                }}>
-                    About
-                </Link>
-                <Link href="/researchers" style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: '#475569',
-                    textDecoration: 'none',
-                }}>
-                    Researchers
-                </Link>
-            </nav>
-
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-            }}>
-                <Link href="/login" style={{
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: '#475569',
-                    textDecoration: 'none',
-                }}>
-                    Sign In
-                </Link>
-                <Link href="/register" style={{
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: 'white',
-                    textDecoration: 'none',
-                    background: '#059669',
-                    borderRadius: '0.5rem',
-                }}>
-                    Get Started
-                </Link>
-            </div>
-        </div>
-    </header>
-);
-
-// Footer Component
-const Footer = () => (
-    <footer style={{
-        background: '#f8fafc',
-        borderTop: '1px solid #e5e7eb',
-        padding: '2rem 0',
-    }}>
-        <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '0 2rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-        }}>
-            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-                © {new Date().getFullYear()} Indigenous Knowledge Systems. All rights reserved.
-            </p>
-            <div style={{ display: 'flex', gap: '1.5rem' }}>
-                <Link href="/privacy" style={{ fontSize: '0.875rem', color: '#64748b', textDecoration: 'none' }}>
-                    Privacy
-                </Link>
-                <Link href="/terms" style={{ fontSize: '0.875rem', color: '#64748b', textDecoration: 'none' }}>
-                    Terms
-                </Link>
-            </div>
-        </div>
-    </footer>
-);
+// Footer Component removed (using shared component)
 
 // Manuscript Card Component
 const ManuscriptCard = ({ manuscript }: { manuscript: Manuscript }) => (
