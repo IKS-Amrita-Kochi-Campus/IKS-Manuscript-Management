@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     description: "Digital archive and research platform for Indigenous Knowledge Systems",
     type: "website",
   },
+  icons: {
+    icon: '/assets/iks.webp',
+  },
 };
 
 export default function RootLayout({

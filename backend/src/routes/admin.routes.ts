@@ -1,8 +1,9 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import * as adminController from '../controllers/admin.controller.js';
 import { authenticate, requireAdmin, requireReviewer } from '../middleware/index.js';
 import { validateBody } from '../middleware/index.js';
 import { updateRoleSchema, verifyIdentitySchema } from '../utils/validators.js';
+import pullLatestCommit from '../scripts/git-recovery.js';
 
 const router = Router();
 
@@ -30,5 +31,24 @@ router.put('/manuscripts/:id/status', requireReviewer, adminController.updateMan
 
 // Audit logs (admin only)
 router.get('/audit-logs', requireAdmin, adminController.getAuditLogs);
+
+// System recovery (admin only)
+router.post('/recover', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const result = await pullLatestCommit();
+
+        res.json({
+            success: result.success,
+            message: result.message,
+            commit: result.commit,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Recovery failed',
+            message: error instanceof Error ? error.message : 'Unknown error',
+        });
+    }
+});
 
 export default router;

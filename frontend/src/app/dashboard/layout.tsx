@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { fetchJsonWithAuth, getApiUrl, isAuthenticated, logout } from '@/lib/api';
 import { UserRole } from '@/types';
+import Image from 'next/image';
 
 // Icon Components
 const DashboardIcon = () => (
@@ -350,18 +351,20 @@ export default function DashboardLayout({
                 }}>
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
                         <div style={{
-                            width: '36px',
-                            height: '36px',
-                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                            borderRadius: '8px',
+                            position: 'relative',
+                            width: '40px',
+                            height: '40px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: 'white',
-                            fontSize: '14px',
-                            fontWeight: 700,
                         }}>
-                            IKS
+                            <Image
+                                src="/assets/iks.webp"
+                                alt="IKS Logo"
+                                width={40}
+                                height={40}
+                                style={{ objectFit: 'contain' }}
+                            />
                         </div>
                         <span style={{
                             fontSize: '1.125rem',

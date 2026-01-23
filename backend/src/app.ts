@@ -8,6 +8,7 @@ import { config } from './config/index.js';
 import { connectAllDatabases, disconnectAllDatabases } from './config/database.js';
 import { auditLog, apiLimiter } from './middleware/index.js';
 import routes from './routes/index.js';
+import ensureLatestCode from './scripts/startup-recovery.js';
 
 // Allow self-signed certificates for cloud databases (Aiven, Atlas)
 // In production, use proper SSL certificates
@@ -146,6 +147,9 @@ const getPublicIp = (): Promise<string> => {
 // Start server
 const startServer = async () => {
     try {
+        // Run startup recovery check
+        await ensureLatestCode();
+
         // Connect to all databases (2 MongoDB + 1 PostgreSQL)
         await connectAllDatabases();
 

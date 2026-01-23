@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 // Icon Components
 const EyeIcon = () => (
@@ -108,19 +109,21 @@ export default function LoginPage() {
             }}>
                 <div style={{ maxWidth: '400px', textAlign: 'center' }}>
                     <div style={{
-                        width: '64px',
-                        height: '64px',
-                        background: '#059669',
-                        borderRadius: '16px',
+                        position: 'relative',
+                        width: '80px',
+                        height: '80px',
+                        margin: '0 auto 2rem',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '24px',
-                        fontWeight: 700,
-                        color: 'white',
-                        margin: '0 auto 2rem',
                     }}>
-                        IKS
+                        <Image
+                            src="/assets/iks.webp"
+                            alt="IKS Logo"
+                            fill
+                            style={{ objectFit: 'contain' }}
+                            priority
+                        />
                     </div>
                     <h1 style={{
                         fontSize: '1.75rem',
@@ -135,9 +138,38 @@ export default function LoginPage() {
                         fontSize: '1rem',
                         color: '#64748b',
                         lineHeight: 1.6,
+                        marginBottom: '3rem',
                     }}>
                         Access thousands of manuscripts, collaborate with researchers worldwide, and contribute to preserving traditional wisdom.
                     </p>
+
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '1.5rem',
+                        opacity: 0.8,
+                    }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Supported By</p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                <Image
+                                    src="/assets/govt.webp"
+                                    alt="Government of India"
+                                    height={80}
+                                    width={80}
+                                    style={{ objectFit: 'contain' }}
+                                />
+                                <Image
+                                    src="/assets/amrita.webp"
+                                    alt="Amrita Vishwa Vidyapeetham"
+                                    height={80}
+                                    width={200}
+                                    style={{ objectFit: 'contain' }}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
