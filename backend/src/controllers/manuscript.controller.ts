@@ -393,20 +393,35 @@ export async function viewFile(req: Request, res: Response): Promise<void> {
         // Apply watermark for viewing (user is already fetched above)
         let finalContent = decryptedContent;
 
-        if (access.watermarkId && user) {
-            const watermarkOptions = {
-                userId: req.user.userId,
-                userEmail: user.email,
-                userName: `${user.first_name} ${user.last_name}`,
-                watermarkId: access.watermarkId,
-                timestamp: new Date(),
-                institution: user.institution || undefined,
-            };
+        if (user) {
+            // Get watermark settings
+            const watermarkSettings = await settingsRepo.getWatermarkSettings();
 
-            if (file.type === 'pdf') {
-                finalContent = await watermarkPdf(decryptedContent, watermarkOptions);
-            } else if (file.type === 'image') {
-                finalContent = await watermarkImage(decryptedContent, watermarkOptions);
+            if (watermarkSettings.enabled) {
+                const watermarkId = access.watermarkId || `view-${Date.now()}`;
+                const watermarkOptions = {
+                    userId: req.user.userId,
+                    userEmail: watermarkSettings.includeUserId ? user.email : '',
+                    userName: `${user.first_name} ${user.last_name}`,
+                    watermarkId: watermarkId,
+                    timestamp: new Date(),
+                    institution: watermarkSettings.text,
+                    // Pass all other settings
+                    fontSize: watermarkSettings.fontSize,
+                    opacity: watermarkSettings.opacity,
+                    color: watermarkSettings.color,
+                    position: watermarkSettings.position as any,
+                    includeUserId: watermarkSettings.includeUserId,
+                    includeTimestamp: watermarkSettings.includeTimestamp,
+                    customText: watermarkSettings.text,
+                    logoPath: 'src/assets/iks.webp'
+                };
+
+                if (file.type === 'pdf') {
+                    finalContent = await watermarkPdf(decryptedContent, watermarkOptions);
+                } else if (file.type === 'image') {
+                    finalContent = await watermarkImage(decryptedContent, watermarkOptions);
+                }
             }
         }
 
@@ -503,6 +518,15 @@ export async function downloadFile(req: Request, res: Response): Promise<void> {
                 watermarkId: watermarkId,
                 timestamp: new Date(),
                 institution: watermarkSettings.text, // Use institution text from settings
+                // Pass all other settings
+                fontSize: watermarkSettings.fontSize,
+                opacity: watermarkSettings.opacity,
+                color: watermarkSettings.color,
+                position: watermarkSettings.position as any,
+                includeUserId: watermarkSettings.includeUserId,
+                includeTimestamp: watermarkSettings.includeTimestamp,
+                customText: watermarkSettings.text,
+                logoPath: 'src/assets/iks.webp'
             };
 
             if (file.type === 'pdf') {

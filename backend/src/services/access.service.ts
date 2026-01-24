@@ -356,9 +356,9 @@ export async function checkAccess(
         return { hasAccess: true };
     }
 
-    // Check if user is admin
+    // Check if user is admin or reviewer (they have global view access)
     const user = await userRepo.findById(userId);
-    if (user?.role === 'ADMIN') {
+    if (user?.role === 'ADMIN' || user?.role === 'REVIEWER') {
         return { hasAccess: true };
     }
 

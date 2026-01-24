@@ -112,8 +112,8 @@ export async function login(
     if (!user) {
         return {
             success: false,
-            error: 'Invalid email or password',
-            code: 'INVALID_CREDENTIALS',
+            error: 'Account not registered. Please sign up.',
+            code: 'USER_NOT_FOUND',
         };
     }
 

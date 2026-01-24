@@ -224,35 +224,86 @@ export async function uploadManuscriptFile(
     }
 
     // Apply watermark immediately on upload for PDFs and images
-    let contentToStore = file.buffer;
+    // let contentToStore = file.buffer; // Removed duplicate declaration
 
     // Import watermark functions dynamically to avoid circular dependencies
-    const { watermarkPdf, watermarkImage } = await import('./watermark.service.js');
+    const { watermarkPdf } = await import('./watermark.service.js');
     const { getWatermarkSettings } = await import('../repositories/settings.repository.js');
 
-    const watermarkSettings = await getWatermarkSettings();
+    // Merge logic: If it's a PDF or Image, we want to normalize it to a single PDF
+    // For now, the input `file` is a single file from Multer. 
+    // If we want to support "50 files uploaded -> 1 PDF", we need to handle an array of files in the controller or service.
+    // The current signature receives `file: Express.Multer.File` (single).
+    // Assuming the user meant "when I upload files, merge them", but the current flow handles 1 at a time.
+    // However, we can ensure even a single file is standardized to A4 PDF with the requested watermarks.
 
-    if (watermarkSettings.enabled && (fileType === 'pdf' || fileType === 'image')) {
-        const uploadWatermarkOptions = {
-            userId: 'system',
-            userEmail: '', // No user email on upload watermark
-            userName: 'Archive Upload',
+    let contentToStore = file.buffer;
+    let fileTypeToStore = fileType;
+    let mimeTypeToStore = file.mimetype;
+    let originalNameToStore = file.originalname;
+
+    // Convert Image to PDF or Normalize PDF to A4 if possible/needed, then watermark
+    // actually, let's stick to watermarking what we have, but if it's an image, convert to PDF A4 page?
+    // User asked "make it into one pdf... default size a4".
+    // Since we receive one file here, we will convert this one file to an A4 PDF if it's an image or PDF.
+
+    if (fileType === 'image' || fileType === 'pdf') {
+        const { PDFDocument, PageSizes } = await import('pdf-lib');
+
+        let pdfDoc: any; // PDFDocument type
+
+        if (fileType === 'pdf') {
+            pdfDoc = await PDFDocument.load(file.buffer);
+        } else {
+            pdfDoc = await PDFDocument.create();
+            const page = pdfDoc.addPage(PageSizes.A4);
+            const image = await pdfDoc.embedPng(file.buffer).catch(async () => await pdfDoc.embedJpg(file.buffer)); // Try PNG then JPG
+
+            // Scale content to fit A4 maintaining aspect ratio
+            const { width, height } = page.getSize();
+            const imgDims = image.scale(1);
+            const scale = Math.min((width - 40) / imgDims.width, (height - 40) / imgDims.height);
+
+            page.drawImage(image, {
+                x: (width - imgDims.width * scale) / 2,
+                y: (height - imgDims.height * scale) / 2,
+                width: imgDims.width * scale,
+                height: imgDims.height * scale,
+            });
+        }
+
+        // Apply watermarks within this PDF generation/normalization flow
+        // Watermark settings
+        const watermarkSettings = await getWatermarkSettings();
+        const user = await userRepo.findById(userId);
+
+        const watermarkOptions = {
+            userId: userId,
+            userEmail: user?.email || '',
+            userName: user ? `${user.first_name} ${user.last_name}` : 'Unknown',
             watermarkId: `upload-${manuscriptId.substring(0, 8)}`,
             timestamp: new Date(),
-            institution: watermarkSettings.text, // Use institution text from settings
+            institution: 'Amrita Vishwa Vidyapeetham Kochi', // Force this text as requested
+            // Force enabled for upload processing if we want it baked in, or use settings check
         };
 
-        try {
-            if (fileType === 'pdf') {
-                contentToStore = await watermarkPdf(file.buffer, uploadWatermarkOptions);
-            } else if (fileType === 'image') {
-                contentToStore = await watermarkImage(file.buffer, uploadWatermarkOptions);
-            }
-            console.log(`✓ Applied watermark to uploaded ${fileType}: "${watermarkSettings.text}"`);
-        } catch (watermarkError) {
-            console.error('Watermark application failed, storing without watermark:', watermarkError);
-            // Continue with original content if watermarking fails
-            contentToStore = file.buffer;
+        // We apply watermarks directly here using the service logic but adapting for the doc we hold
+        // Or simpler: save this PDF buffer, then pass to watermarkPdf service which handles "drawing" 
+        // But the service saves/loads doc again. Optimization: valid enough.
+
+        const pdfBytes = await pdfDoc.save();
+        contentToStore = Buffer.from(pdfBytes);
+
+        // Now apply the specific "Top/Bottom + 3 Vertical" watermark requested
+        if (watermarkSettings.enabled) {
+            contentToStore = await watermarkPdf(contentToStore, watermarkOptions);
+        }
+
+        // Change stored metadata to PDF since we converted/normalized
+        fileTypeToStore = 'pdf';
+        mimeTypeToStore = 'application/pdf';
+        if (!originalNameToStore.toLowerCase().endsWith('.pdf')) {
+            originalNameToStore += '.pdf';
         }
     }
 
@@ -271,9 +322,9 @@ export async function uploadManuscriptFile(
 
     // Add file to manuscript
     const fileData = {
-        type: fileType,
-        originalName: file.originalname,
-        mimeType: file.mimetype,
+        type: fileTypeToStore,
+        originalName: originalNameToStore,
+        mimeType: mimeTypeToStore,
         size: contentToStore.length, // Use watermarked content size
         encryptedPath: storagePath,
         checksum,
