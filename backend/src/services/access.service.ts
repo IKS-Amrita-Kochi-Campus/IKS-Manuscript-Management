@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getManuscriptModel } from '../models/index.js';
-import { userRepo, accessRequestRepo, manuscriptAccessRepo } from '../repositories/postgres.repository.js';
+import { userRepo, accessRequestRepo, manuscriptAccessRepo, AccessRequest } from '../repositories/postgres.repository.js';
 
 type AccessLevel = 'VIEW_METADATA' | 'VIEW_CONTENT' | 'DOWNLOAD' | 'FULL_ACCESS';
 
@@ -22,8 +22,8 @@ interface ReviewInput {
 
 interface AccessResult {
     success: boolean;
-    request?: Record<string, unknown>;
-    requests?: Record<string, unknown>[];
+    request?: AccessRequest | Record<string, unknown>;
+    requests?: AccessRequest[] | Record<string, unknown>[];
     error?: string;
     code?: string;
 }
@@ -158,7 +158,7 @@ export async function getUserAccessRequests(userId: string): Promise<AccessResul
 export async function checkPendingRequest(
     manuscriptId: string,
     userId: string
-): Promise<{ hasPendingRequest: boolean; request?: Record<string, unknown> }> {
+): Promise<{ hasPendingRequest: boolean; request?: AccessRequest }> {
     const requests = await accessRequestRepo.findByRequester(userId);
 
     const pendingRequest = requests.find(

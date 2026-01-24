@@ -74,6 +74,7 @@ export async function authenticate(
             userId: decoded.userId,
             email: decoded.email,
             role: user.role,
+            sessionId: session.id,
         };
         req.sessionId = session.id;
 
@@ -124,6 +125,7 @@ export async function optionalAuth(
                     userId: decoded.userId,
                     email: decoded.email,
                     role: user.role,
+                    sessionId: session.id,
                 };
                 req.sessionId = session.id;
             }

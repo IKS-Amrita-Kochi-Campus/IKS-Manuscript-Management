@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { API_BASE_URL } from '@/lib/api';
+import TurnstileWidget from '@/components/auth/TurnstileWidget';
 
 interface University {
     name: string;
@@ -43,7 +45,7 @@ const LoadingSpinner = () => (
     </svg>
 );
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// Local definition removed, using import from @/lib/api
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -59,6 +61,8 @@ export default function RegisterPage() {
     const [email, setEmail] = useState('');
     const [institution, setInstitution] = useState('');
     const [password, setPassword] = useState('');
+    const [turnstileToken, setTurnstileToken] = useState('');
+    const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAA2pX7sX7sX7sX7s'; // Test key if not provided
 
     // University Search State
     const [suggestions, setSuggestions] = useState<University[]>([]);
@@ -101,6 +105,11 @@ export default function RegisterPage() {
 
         if (password.length < 8) {
             setError('Password must be at least 8 characters');
+            return;
+        }
+
+        if (!turnstileToken) {
+            setError('Please complete the security verification');
             return;
         }
 
@@ -187,6 +196,7 @@ export default function RegisterPage() {
                             fill
                             style={{ objectFit: 'contain' }}
                             priority
+                            sizes="80px"
                         />
                     </div>
                     <h1 style={{
@@ -605,6 +615,12 @@ export default function RegisterPage() {
                                 </Link>
                             </label>
                         </div>
+
+                        <TurnstileWidget
+                            siteKey={TURNSTILE_SITE_KEY}
+                            onVerify={setTurnstileToken}
+                            action="register"
+                        />
 
                         <button
                             type="submit"

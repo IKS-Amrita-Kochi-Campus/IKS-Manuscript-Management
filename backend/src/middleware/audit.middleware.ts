@@ -14,7 +14,7 @@ function getClientIp(req: Request): string {
     if (cfConnectingIp) {
         return cfConnectingIp;
     }
-    
+
     // Check for standard X-Forwarded-For header
     const xForwardedFor = req.headers['x-forwarded-for'] as string | undefined;
     if (xForwardedFor) {
@@ -22,15 +22,15 @@ function getClientIp(req: Request): string {
         const ips = xForwardedFor.split(',').map(ip => ip.trim());
         return ips[0];
     }
-    
+
     // Fallback to Express req.ip
     let ip = req.ip || req.socket.remoteAddress || 'unknown';
-    
+
     // Remove IPv4-mapped IPv6 prefix
     if (ip && ip.startsWith('::ffff:')) {
         ip = ip.substring(7); // Remove '::ffff:' prefix
     }
-    
+
     return ip;
 }
 
@@ -135,7 +135,7 @@ export function auditLog(req: Request, res: Response, next: NextFunction): void 
             }
         });
 
-        return originalEnd.call(this, chunk, ...args) as Response;
+        return originalEnd.apply(this, [chunk, ...args] as any) as Response;
     };
 
     next();

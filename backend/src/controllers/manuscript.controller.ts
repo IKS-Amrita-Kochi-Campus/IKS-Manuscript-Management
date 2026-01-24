@@ -18,7 +18,7 @@ export async function create(req: Request, res: Response): Promise<void> {
     }
 
     const data = req.body as ManuscriptInput;
-    const result = await manuscriptService.createManuscript(data, req.user.userId);
+    const result = await manuscriptService.createManuscript(data as any, req.user.userId);
 
     if (!result.success) {
         res.status(400).json({
@@ -89,7 +89,7 @@ export async function getById(req: Request, res: Response): Promise<void> {
                 ...responseData,
                 script: manuscript.script,
                 format: manuscript.format,
-                dimensions: manuscript.dimensions,
+                dimensions: manuscript.dimensions as any,
                 folioCount: manuscript.folioCount,
                 condition: manuscript.condition,
                 dateComposed: manuscript.dateComposed,
@@ -103,7 +103,7 @@ export async function getById(req: Request, res: Response): Promise<void> {
                     mimeType: f.mimeType,
                     size: f.size,
                     pageCount: f.pageCount,
-                })),
+                })) as any,
             };
         }
     }
@@ -126,7 +126,7 @@ export async function update(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     const data = req.body as Partial<ManuscriptInput>;
 
-    const result = await manuscriptService.updateManuscript(id, data, req.user.userId);
+    const result = await manuscriptService.updateManuscript(id, data as any, req.user.userId);
 
     if (!result.success) {
         const status =
@@ -358,7 +358,7 @@ export async function viewFile(req: Request, res: Response): Promise<void> {
     const isReviewer = user?.role === 'REVIEWER' || user?.role === 'ADMIN';
 
     // Check access (only if not owner and not reviewer)
-    let access = { hasAccess: isOwner || isReviewer, watermarkId: undefined as string | undefined };
+    let access: { hasAccess: boolean; watermarkId?: string } = { hasAccess: isOwner || isReviewer };
     if (!isOwner && !isReviewer) {
         access = await accessService.checkAccess(id, req.user.userId, 'VIEW_CONTENT');
     }
@@ -452,7 +452,7 @@ export async function downloadFile(req: Request, res: Response): Promise<void> {
     const isOwner = manuscript.ownerId === req.user.userId;
 
     // Check download access (only if not owner)
-    let access = { hasAccess: isOwner, watermarkId: undefined as string | undefined };
+    let access: { hasAccess: boolean; watermarkId?: string } = { hasAccess: isOwner };
     if (!isOwner) {
         access = await accessService.checkAccess(id, req.user.userId, 'DOWNLOAD');
     }

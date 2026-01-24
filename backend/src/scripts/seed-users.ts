@@ -58,6 +58,39 @@ const TEST_USERS = [
         isEmailVerified: true,
         verificationStatus: 'PENDING',
     },
+    {
+        email: 'kiran@ikskochi.org',
+        password: 'Kiran@iks',
+        firstName: 'Kiran',
+        lastName: 'Isk',
+        role: 'ADMIN',
+        institution: 'IKS Kochi',
+        designation: 'Admin',
+        isEmailVerified: true,
+        verificationStatus: 'VERIFIED',
+    },
+    {
+        email: 'erick@ikskochi.org',
+        password: 'Erick@iks',
+        firstName: 'Erick',
+        lastName: 'Isk',
+        role: 'REVIEWER',
+        institution: 'IKS Kochi',
+        designation: 'Reviewer',
+        isEmailVerified: true,
+        verificationStatus: 'VERIFIED',
+    },
+    {
+        email: 'user@ikskochi.org',
+        password: 'user@iks',
+        firstName: 'Generic',
+        lastName: 'User',
+        role: 'VISITOR',
+        institution: 'IKS Kochi',
+        designation: 'User',
+        isEmailVerified: true,
+        verificationStatus: 'VERIFIED',
+    },
 ];
 
 async function hashPassword(password: string): Promise<string> {
@@ -84,17 +117,22 @@ async function seedUsers(): Promise<void> {
     const maskedUri = connectionString.replace(/:[^:@\/]+@/, ':****@');
     console.log('🔗 Connection:', maskedUri);
 
-    // Load CA certificate if available
-    let sslConfig: pg.PoolConfig['ssl'] = { rejectUnauthorized: false };
+    // Check if connecting to localhost
+    const isLocalhost = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
 
-    if (fs.existsSync(CA_CERT_PATH)) {
-        console.log('📜 Loading CA certificate from:', CA_CERT_PATH);
-        sslConfig = {
-            rejectUnauthorized: true,
-            ca: fs.readFileSync(CA_CERT_PATH).toString(),
-        };
-    } else {
-        console.log('⚠️  CA certificate not found, using insecure SSL connection');
+    // Load CA certificate if available
+    let sslConfig: pg.PoolConfig['ssl'] = isLocalhost ? false : { rejectUnauthorized: false };
+
+    if (!isLocalhost) {
+        if (fs.existsSync(CA_CERT_PATH)) {
+            console.log('📜 Loading CA certificate from:', CA_CERT_PATH);
+            sslConfig = {
+                rejectUnauthorized: true,
+                ca: fs.readFileSync(CA_CERT_PATH).toString(),
+            };
+        } else {
+            console.log('⚠️  CA certificate not found, using insecure SSL connection');
+        }
     }
 
     const pool = new Pool({
@@ -108,6 +146,21 @@ async function seedUsers(): Promise<void> {
         console.log('🔌 Connecting to PostgreSQL...');
         client = await pool.connect();
         console.log('✓ Connected to PostgreSQL\n');
+
+        // Clear existing users and dependent data
+        console.log('🗑️  Clearing existing data...');
+
+        // Disable foreign key checks for manual cleanup if needed, but better to delete in order
+        // Order matters due to foreign keys
+        await client.query('DELETE FROM app_settings'); // References users(updated_by)
+        await client.query('DELETE FROM verification_documents'); // References users
+        await client.query('DELETE FROM bookmarks'); // References users
+        await client.query('DELETE FROM access_requests'); // References users
+        await client.query('DELETE FROM manuscript_access'); // References users
+        await client.query('DELETE FROM sessions'); // References users
+        await client.query('DELETE FROM users');
+
+        console.log('✓ Existing users and related data cleared\n');
 
         for (const user of TEST_USERS) {
             try {
@@ -158,13 +211,16 @@ async function seedUsers(): Promise<void> {
         console.log('🎉 Seed completed successfully!');
         console.log('═══════════════════════════════════════════\n');
         console.log('📋 Test Accounts:');
-        console.log('┌─────────────────────────────────────────────────────┐');
-        console.log('│ Role       │ Email              │ Password          │');
-        console.log('├────────────┼────────────────────┼───────────────────┤');
-        console.log('│ ADMIN      │ admin@iks.org      │ Admin@123456!     │');
-        console.log('│ REVIEWER   │ member@iks.org     │ Member@123456!    │');
-        console.log('│ VISITOR    │ user@iks.org       │ User@123456!      │');
-        console.log('└─────────────────────────────────────────────────────┘');
+        console.log('┌─────────────────────────────────────────────────────────────────┐');
+        console.log('│ Role       │ Email                   │ Password                 │');
+        console.log('├────────────┼─────────────────────────┼──────────────────────────┤');
+        console.log('│ ADMIN      │ admin@iks.org           │ Admin@123456!            │');
+        console.log('│ REVIEWER   │ member@iks.org          │ Member@123456!           │');
+        console.log('│ VISITOR    │ user@iks.org            │ User@123456!             │');
+        console.log('│ ADMIN      │ kiran@ikskochi.org      │ Kiran@iks                │');
+        console.log('│ REVIEWER   │ erick@ikskochi.org      │ Erick@iks                │');
+        console.log('│ VISITOR    │ user@ikskochi.org       │ user@iks                 │');
+        console.log('└─────────────────────────────────────────────────────────────────┘');
         console.log('\n');
 
     } catch (error: unknown) {

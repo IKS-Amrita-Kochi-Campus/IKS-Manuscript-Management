@@ -3,7 +3,7 @@ import * as adminController from '../controllers/admin.controller.js';
 import { authenticate, requireAdmin, requireReviewer } from '../middleware/index.js';
 import { validateBody } from '../middleware/index.js';
 import { updateRoleSchema, verifyIdentitySchema } from '../utils/validators.js';
-import pullLatestCommit from '../../scripts/git-recovery.js';
+import pullLatestCommit from '../utils/git-recovery.js';
 
 const router = Router();
 

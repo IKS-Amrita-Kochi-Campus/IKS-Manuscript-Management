@@ -8,7 +8,7 @@ import { config } from './config/index.js';
 import { connectAllDatabases, disconnectAllDatabases } from './config/database.js';
 import { auditLog, apiLimiter } from './middleware/index.js';
 import routes from './routes/index.js';
-import ensureLatestCode from '../scripts/startup-recovery.js';
+import ensureLatestCode from './utils/startup-recovery.js';
 
 // Allow self-signed certificates for cloud databases (Aiven, Atlas)
 // In production, use proper SSL certificates
