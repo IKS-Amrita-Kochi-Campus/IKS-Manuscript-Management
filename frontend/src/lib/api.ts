@@ -55,6 +55,40 @@ export function clearTokens(): void {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('csrfToken');
+}
+
+/**
+ * Get/Set CSRF Token
+ */
+export function getCsrfToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('csrfToken');
+}
+
+export function setCsrfToken(token: string): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('csrfToken', token);
+}
+
+/**
+ * Fetch CSRF Token from server
+ */
+export async function fetchCsrfToken(): Promise<string | null> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/csrf`, {
+            credentials: 'include' // Required for cross-origin cookies
+        });
+        const data = await response.json();
+        if (data.csrfToken) {
+            setCsrfToken(data.csrfToken);
+            return data.csrfToken;
+        }
+        return null;
+    } catch (error) {
+        console.error('Failed to fetch CSRF token:', error);
+        return null;
+    }
 }
 
 // ============================================================
@@ -128,12 +162,24 @@ export async function fetchWithAuth(
         throw new Error('No access token');
     }
 
+    // Validating/Fetching CSRF token if needed for state-changing requests
+    const method = options.method || 'GET';
+    const isStateChange = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase());
+    let csrfToken = getCsrfToken();
+
+    if (isStateChange && !csrfToken) {
+        // Try to fetch it on the fly if missing
+        csrfToken = await fetchCsrfToken();
+    }
+
     // Make the initial request
     let response = await fetch(url, {
         ...options,
+        credentials: 'include', // Required for cross-origin cookies
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
             ...options.headers,
         },
     });
@@ -155,9 +201,11 @@ export async function fetchWithAuth(
             const newToken = getAccessToken();
             response = await fetch(url, {
                 ...options,
+                credentials: 'include', // Required for cross-origin cookies
                 headers: {
                     'Authorization': `Bearer ${newToken}`,
                     'Content-Type': 'application/json',
+                    ...(getCsrfToken() ? { 'X-CSRF-Token': getCsrfToken()! } : {}),
                     ...options.headers,
                 },
             });
@@ -219,10 +267,18 @@ export async function logout(): Promise<void> {
 export const api = {
     auth: {
         async login(email: string, password: string): Promise<LoginResponse & { tokens?: AuthTokens }> {
+            // Ensure CSRF token
+            if (!getCsrfToken()) {
+                await fetchCsrfToken();
+            }
+            const csrfToken = getCsrfToken();
+
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
+                credentials: 'include', // Required for cross-origin cookies
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
                 },
                 body: JSON.stringify({ email, password }),
             });
@@ -230,10 +286,18 @@ export const api = {
         },
 
         async register(data: RegisterData): Promise<{ success: boolean; error?: string }> {
+            // Ensure CSRF token
+            if (!getCsrfToken()) {
+                await fetchCsrfToken();
+            }
+            const csrfToken = getCsrfToken();
+
             const response = await fetch(`${API_BASE_URL}/auth/register`, {
                 method: 'POST',
+                credentials: 'include', // Required for cross-origin cookies
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
                 },
                 body: JSON.stringify(data),
             });
@@ -248,10 +312,18 @@ export const api = {
 
         async refresh(): Promise<TokenResponse> {
             const refreshToken = getRefreshToken();
+
+            // Ensure CSRF token if missing (though usually present by now)
+            if (!getCsrfToken()) {
+                await fetchCsrfToken();
+            }
+            const csrfToken = getCsrfToken();
+
             const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
                 },
                 body: JSON.stringify({ refreshToken }),
             });

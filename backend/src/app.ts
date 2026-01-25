@@ -49,8 +49,14 @@ app.use(cors({
 }));
 
 // Request parsing
+import cookieParser from 'cookie-parser';
+import { validateCsrfToken } from './middleware/csrf.middleware.js';
+
+// ... imports
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser()); // Parse cookies
 
 // Compression
 app.use(compression());
@@ -67,6 +73,10 @@ app.use(apiLimiter); // Also apply globally as fallback
 // Audit logging
 app.use(config.apiPrefix, auditLog);
 app.use(auditLog); // Also apply globally as fallback
+
+// CSRF Protection
+// Apply globally except for specific webhooks if any
+app.use(validateCsrfToken);
 
 // API routes
 app.use(config.apiPrefix, routes);

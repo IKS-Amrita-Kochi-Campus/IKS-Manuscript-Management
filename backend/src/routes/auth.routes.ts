@@ -5,9 +5,12 @@ import { loginLimiter, registerLimiter, passwordResetLimiter } from '../middlewa
 import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../utils/validators.js';
 import { authenticate } from '../middleware/index.js';
 
+import { generateCsrfToken } from '../middleware/csrf.middleware.js';
+
 const router = Router();
 
 // Public routes
+router.get('/csrf', generateCsrfToken);
 router.post('/register', registerLimiter, validateBody(registerSchema), authController.register);
 router.post('/login', loginLimiter, validateBody(loginSchema), authController.login);
 router.get('/verify-email/:token', authController.verifyEmail);
