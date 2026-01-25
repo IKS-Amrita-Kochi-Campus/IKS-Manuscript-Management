@@ -257,12 +257,29 @@ export async function uploadManuscriptFile(
         } else {
             pdfDoc = await PDFDocument.create();
             const page = pdfDoc.addPage(PageSizes.A4);
-            const image = await pdfDoc.embedPng(file.buffer).catch(async () => await pdfDoc.embedJpg(file.buffer)); // Try PNG then JPG
+
+            // Embed image logic
+            let image;
+            try {
+                // Try embedding as PNG first
+                image = await pdfDoc.embedPng(file.buffer);
+            } catch (e) {
+                // Fallback to JPG
+                image = await pdfDoc.embedJpg(file.buffer);
+            }
 
             // Scale content to fit A4 maintaining aspect ratio
             const { width, height } = page.getSize();
+            const margin = 40;
+            const availableWidth = width - (margin * 2);
+            const availableHeight = height - (margin * 2);
+
             const imgDims = image.scale(1);
-            const scale = Math.min((width - 40) / imgDims.width, (height - 40) / imgDims.height);
+
+            // Calculate scale to fit within available space
+            const scaleWidth = availableWidth / imgDims.width;
+            const scaleHeight = availableHeight / imgDims.height;
+            const scale = Math.min(scaleWidth, scaleHeight, 1); // Ensure we don't upscale if image is small
 
             page.drawImage(image, {
                 x: (width - imgDims.width * scale) / 2,

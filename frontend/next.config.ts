@@ -1,14 +1,13 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   experimental: {
-    // @ts-expect-error - allowedDevOrigins is a valid option but types might be outdated
-    allowedDevOrigins: [
-      'localhost',
-      'ikskochi.org'
-    ]
-  }
+    // @ts-expect-error - turbopack options missing from types
+    turbopack: {
+      root: path.resolve(__dirname, '..'),
+    },
+  },
 };
 
 export default nextConfig;

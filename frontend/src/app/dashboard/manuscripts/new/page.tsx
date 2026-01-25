@@ -174,6 +174,9 @@ export default function NewManuscriptPage() {
                 const formData = new FormData();
                 formData.append('files', fileStatus.file);
 
+                // Get CSRF token from localStorage
+                const csrfToken = localStorage.getItem('csrfToken');
+
                 // Use XMLHttpRequest for progress tracking
                 await new Promise<void>((resolve, reject) => {
                     const xhr = new XMLHttpRequest();
@@ -207,8 +210,13 @@ export default function NewManuscriptPage() {
 
                     xhr.open('POST', getApiUrl(`/manuscripts/${uploadedManuscriptId}/files`));
                     xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+                    if (csrfToken) {
+                        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+                    }
+                    xhr.withCredentials = true; // Send cookies for CSRF
                     xhr.send(formData);
                 });
+
 
             } catch (err: any) {
                 setFiles(prev => prev.map((f, idx) =>

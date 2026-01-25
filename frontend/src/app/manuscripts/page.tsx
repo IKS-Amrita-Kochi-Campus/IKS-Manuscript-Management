@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Header from '../../components/layout/Header';
@@ -312,7 +312,7 @@ const LoadingSkeleton = () => (
     </div>
 );
 
-export default function ManuscriptsPage() {
+function ManuscriptsContent() {
     const searchParams = useSearchParams();
     const initialQuery = searchParams.get('q') || '';
 
@@ -800,7 +800,7 @@ export default function ManuscriptsPage() {
                                 <BookIcon />
                             </div>
                             <h3 style={{
-                                fontSize: '1rem',
+                                fontSize: '1.125rem',
                                 fontWeight: 600,
                                 color: '#0f172a',
                                 marginBottom: '0.5rem',
@@ -808,31 +808,29 @@ export default function ManuscriptsPage() {
                                 No manuscripts found
                             </h3>
                             <p style={{
-                                fontSize: '0.875rem',
                                 color: '#64748b',
                                 marginBottom: '1.5rem',
                             }}>
-                                Try adjusting your search or filters to find what you&apos;re looking for
+                                Adjust your search or filters to find what you're looking for.
                             </p>
                             <button
                                 onClick={() => {
                                     setSearchQuery('');
                                     setSelectedCategory('All');
                                     setSelectedLanguage('All');
-                                    fetchManuscripts(1);
                                 }}
                                 style={{
                                     padding: '0.5rem 1rem',
                                     fontSize: '0.875rem',
                                     fontWeight: 500,
-                                    color: 'white',
-                                    background: '#059669',
+                                    color: '#059669',
+                                    background: '#ecfdf5',
                                     border: 'none',
-                                    borderRadius: '0.5rem',
+                                    borderRadius: '6px',
                                     cursor: 'pointer',
                                 }}
                             >
-                                Clear Filters
+                                Clear all filters
                             </button>
                         </div>
                     )}
@@ -841,12 +839,9 @@ export default function ManuscriptsPage() {
                     {pagination.totalPages > 1 && (
                         <div style={{
                             display: 'flex',
-                            alignItems: 'center',
                             justifyContent: 'center',
                             gap: '0.5rem',
                             marginTop: '2rem',
-                            paddingTop: '2rem',
-                            borderTop: '1px solid #e5e7eb',
                         }}>
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}
@@ -854,7 +849,6 @@ export default function ManuscriptsPage() {
                                 style={{
                                     padding: '0.5rem 1rem',
                                     fontSize: '0.875rem',
-                                    fontWeight: 500,
                                     color: currentPage === 1 ? '#94a3b8' : '#0f172a',
                                     background: 'white',
                                     border: '1px solid #e5e7eb',
@@ -864,35 +858,34 @@ export default function ManuscriptsPage() {
                             >
                                 Previous
                             </button>
-                            {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                                const page = i + 1;
-                                return (
-                                    <button
-                                        key={page}
-                                        onClick={() => handlePageChange(page)}
-                                        style={{
-                                            width: '40px',
-                                            height: '40px',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500,
-                                            color: page === currentPage ? 'white' : '#64748b',
-                                            background: page === currentPage ? '#059669' : 'white',
-                                            border: page === currentPage ? 'none' : '1px solid #e5e7eb',
-                                            borderRadius: '0.5rem',
-                                            cursor: 'pointer',
-                                        }}
-                                    >
-                                        {page}
-                                    </button>
-                                );
-                            })}
+                            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
+                                <button
+                                    key={p}
+                                    onClick={() => handlePageChange(p)}
+                                    style={{
+                                        width: '36px',
+                                        height: '36px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.875rem',
+                                        fontWeight: p === currentPage ? 600 : 400,
+                                        color: p === currentPage ? 'white' : '#0f172a',
+                                        background: p === currentPage ? '#059669' : 'white',
+                                        border: p === currentPage ? 'none' : '1px solid #e5e7eb',
+                                        borderRadius: '0.5rem',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    {p}
+                                </button>
+                            ))}
                             <button
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage === pagination.totalPages}
                                 style={{
                                     padding: '0.5rem 1rem',
                                     fontSize: '0.875rem',
-                                    fontWeight: 500,
                                     color: currentPage === pagination.totalPages ? '#94a3b8' : '#0f172a',
                                     background: 'white',
                                     border: '1px solid #e5e7eb',
@@ -911,3 +904,14 @@ export default function ManuscriptsPage() {
         </div>
     );
 }
+
+export default function ManuscriptsPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-8 text-slate-500">Loading library...</div>}>
+            <ManuscriptsContent />
+        </Suspense>
+    );
+}
+
+
+

@@ -244,14 +244,16 @@ export default function SettingsPage() {
             formData.append('document', idFile);
             formData.append('documentType', idType);
 
-            const tokens = localStorage.getItem('auth_tokens');
-            const { accessToken } = tokens ? JSON.parse(tokens) : {};
+            const accessToken = localStorage.getItem('accessToken');
+            const csrfToken = localStorage.getItem('csrfToken');
 
             const response = await fetch(getApiUrl('/users/me/identity'), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
+                    ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
                 },
+                credentials: 'include',
                 body: formData,
             });
 
@@ -271,6 +273,7 @@ export default function SettingsPage() {
             setUploadingId(false);
         }
     };
+
 
     const tabs = [
         { id: 'profile' as const, label: 'Profile', icon: <UserIcon /> },

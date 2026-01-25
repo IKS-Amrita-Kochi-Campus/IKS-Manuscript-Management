@@ -30,6 +30,7 @@ const allowedOrigins = [
     config.frontendUrl,
     'http://localhost:3000',
     'http://localhost:3001',
+    'https://ikskochi.org',
 ];
 
 app.use(cors({
@@ -45,7 +46,7 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
 }));
 
 // Request parsing

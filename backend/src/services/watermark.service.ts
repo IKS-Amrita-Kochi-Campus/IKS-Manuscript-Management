@@ -32,135 +32,83 @@ export async function watermarkPdf(
 
     const pages = pdfDoc.getPages();
 
-    // Default settings if not provided
-    const fontSize = options.fontSize || 14;
-    const opacity = options.opacity !== undefined ? options.opacity : 0.15;
-    const colorHex = options.color || '#808080';
+    // Default settings
+    const fontSize = 10; // Small, readable text for header/footer
 
-    // Parse hex color
-    const r = parseInt(colorHex.substring(1, 3), 16) / 255;
-    const g = parseInt(colorHex.substring(3, 5), 16) / 255;
-    const b = parseInt(colorHex.substring(5, 7), 16) / 255;
-    const watermarkColor = rgb(isNaN(r) ? 0.5 : r, isNaN(g) ? 0.5 : g, isNaN(b) ? 0.5 : b);
+    // Get text from reusable function
+    const watermarkText = buildWatermarkText(options);
 
-    // Build watermark text based on settings
-    let watermarkText = options.customText || options.institution || 'Confidential';
-
-    /* 
-    if (options.includeUserId) {
-        watermarkText += ` | ${options.userName} (${options.userId.substring(0, 8)})`;
-    }
-    */
-
-    if (options.includeTimestamp) {
-        watermarkText += ` | ${options.timestamp.toISOString().split('T')[0]}`;
-    }
-
-    // Load logo images
-    let iksLogoImage = null;
+    // Load Amrita Logo
     let amritaLogoImage = null;
 
-    // IKS Logo (Center)
     try {
-        const iksLogoPath = 'src/assets/iks.webp'; // Relative to project root when running
-        // Ideally we would use fs.readFile, but here we can rely on sharp or just skip if we don't have fs in this context easily.
-        // Assuming we are in node environment
         const fs = await import('fs');
         const path = await import('path');
         const projectRoot = process.cwd();
 
-        const iksFullPath = path.join(projectRoot, 'src', 'assets', 'iks.webp');
-        if (fs.existsSync(iksFullPath)) {
-            const iksBuffer = fs.readFileSync(iksFullPath);
-            iksLogoImage = await pdfDoc.embedPng(iksBuffer);
-        }
-
+        // Path to the Amrita logo
         const amritaFullPath = path.join(projectRoot, 'src', 'assets', 'amrita.webp');
+
         if (fs.existsSync(amritaFullPath)) {
-            const amritaBuffer = fs.readFileSync(amritaFullPath);
-            amritaLogoImage = await pdfDoc.embedPng(amritaBuffer);
+            const rawBuffer = fs.readFileSync(amritaFullPath);
+
+            // Convert WebP to PNG using Sharp because pdf-lib requires PNG or JPG
+            // Also applying grayscale to make it look like a standard watermark
+            const pngBuffer = await sharp(rawBuffer)
+                .grayscale()
+                .png()
+                .toBuffer();
+
+            amritaLogoImage = await pdfDoc.embedPng(pngBuffer);
         }
     } catch (e) {
-        console.error('Failed to load logos for watermark', e);
+        console.error('Failed to load watermark logo:', e);
     }
 
     for (const page of pages) {
         const { width, height } = page.getSize();
-        const textWidth = helveticaFont.widthOfTextAtSize(watermarkText, fontSize);
-        const textHeight = helveticaFont.heightAtSize(fontSize);
 
-        // Draw IKS Logo in the center (Background)
-        if (iksLogoImage) {
-            const logoWidth = 200; // Adjust size as needed
-            const logoHeight = (iksLogoImage.height / iksLogoImage.width) * logoWidth;
-
-            page.drawImage(iksLogoImage, {
-                x: width / 2 - logoWidth / 2,
-                y: height / 2 - logoHeight / 2,
-                width: logoWidth,
-                height: logoHeight,
-                opacity: 0.1, // Very faint background
-            });
-        }
-
-        // Draw Amrita Logo in the top right
+        // 1. Draw Amrita Logo in the Center
         if (amritaLogoImage) {
-            const logoWidth = 120; // Adjust size
-            const logoHeight = (amritaLogoImage.height / amritaLogoImage.width) * logoWidth;
+            // Set a substantial size for the center watermark
+            const targetWidth = width * 0.6; // Slightly larger
+            const scale = targetWidth / amritaLogoImage.width;
+            const logoWidth = amritaLogoImage.width * scale;
+            const logoHeight = amritaLogoImage.height * scale;
 
             page.drawImage(amritaLogoImage, {
-                x: width - logoWidth - 20,
-                y: height - logoHeight - 20,
+                x: (width - logoWidth) / 2,
+                y: (height - logoHeight) / 2,
                 width: logoWidth,
                 height: logoHeight,
-                opacity: 0.8, // More visible but still watermark-like
+                opacity: 0.3, // Darker watermark
             });
         }
 
-        // 1. Top and Bottom Header/Footer Watermarks
-        const headerFooterText = `Amrita Vishwa Vidyapeetham Kochi | Uploaded by: ${options.userName} (${options.userId}) | ${options.timestamp.toISOString().split('T')[0]}`;
-        const hfSize = 10;
-        const hfWidth = helveticaFont.widthOfTextAtSize(headerFooterText, hfSize);
+        // 2. Draw Top and Bottom Text
+        const textWidth = helveticaFont.widthOfTextAtSize(watermarkText, fontSize);
 
-        // Top
-        page.drawText(headerFooterText, {
-            x: width / 2 - hfWidth / 2,
-            y: height - 20,
-            size: hfSize,
+        // Settings for text
+        const textOptions = {
+            size: fontSize,
             font: helveticaFont,
-            color: rgb(0.5, 0.5, 0.5),
-            opacity: 0.6,
+            color: rgb(0.2, 0.2, 0.2), // Dark gray, "like in the image" (dark logo mentioned, assuming dark text too)
+            opacity: 1, // Full visibility for instructions/info
+        };
+
+        // Top Text (with some margin)
+        page.drawText(watermarkText, {
+            x: (width - textWidth) / 2, // Centered
+            y: height - 20, // 20 units from top
+            ...textOptions
         });
 
-        // Bottom
-        page.drawText(headerFooterText, {
-            x: width / 2 - hfWidth / 2,
-            y: 20,
-            size: hfSize,
-            font: helveticaFont,
-            color: rgb(0.5, 0.5, 0.5),
-            opacity: 0.6,
+        // Bottom Text (with some margin)
+        page.drawText(watermarkText, {
+            x: (width - textWidth) / 2, // Centered
+            y: 20, // 20 units from bottom
+            ...textOptions
         });
-
-        // 2. Vertical Watermarks (3 down the center)
-        const verticalText = `Amrita Vishwa Vidyapeetham Kochi | ${options.userName}`;
-        const vSize = 16;
-        const vTextWidth = helveticaFont.widthOfTextAtSize(verticalText, vSize);
-
-        // Calculate vertical positions (25%, 50%, 75% of height)
-        const vPositions = [height * 0.75, height * 0.5, height * 0.25];
-
-        for (const yPos of vPositions) {
-            page.drawText(verticalText, {
-                x: width / 2, // Centered horizontally (pivot)
-                y: yPos - vTextWidth / 2, // Centered vertically relative to text length
-                size: vSize,
-                font: helveticaFont,
-                color: rgb(0.8, 0.8, 0.8), // Faint gray
-                opacity: 0.25,
-                rotate: degrees(90), // Vertical orientation
-            });
-        }
     }
 
     return Buffer.from(await pdfDoc.save());
@@ -232,20 +180,9 @@ export function createWatermarkMetadata(options: WatermarkOptions): Record<strin
  * Build watermark text from options
  */
 function buildWatermarkText(options: WatermarkOptions): string {
-    const parts: string[] = [];
-
-    // Institution watermark is the main text
-    if (options.institution) {
-        parts.push(options.institution);
-    }
-
-    // Add user info and tracking data
-    parts.push(options.userName);
-    parts.push(options.userEmail);
-    parts.push(options.timestamp.toISOString().split('T')[0]);
-    // parts.push(options.watermarkId.substring(0, 8)); // Removed visible tracking ID
-
-    return parts.join(' | ');
+    const dateStr = options.timestamp.toISOString().split('T')[0];
+    const websiteUrl = 'https://ikskochi.org';
+    return `Amrita Vishwa Vidyapeetham, Kochi | Uploaded by - ${options.userId} | ${dateStr} | ${websiteUrl}`;
 }
 
 /**
