@@ -5,11 +5,6 @@ import { Request } from 'express';
 // Allowed file types for manuscripts
 const ALLOWED_MIME_TYPES = [
     'application/pdf',
-    'image/jpeg',
-    'image/png',
-    'image/tiff',
-    'image/webp',
-    'text/plain',
 ];
 
 // Allowed file types for identity documents
@@ -38,7 +33,7 @@ const manuscriptFileFilter = (
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
         callback(null, true);
     } else {
-        callback(new Error(`File type ${file.mimetype} is not allowed. Allowed types: PDF, JPEG, PNG, TIFF, WebP, TXT`));
+        callback(new Error(`File type ${file.mimetype} is not allowed. Only PDF files are accepted.`));
     }
 };
 

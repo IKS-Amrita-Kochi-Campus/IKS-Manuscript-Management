@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import { getApiUrl } from '@/lib/api';
 
 // Icon Components
 const BookIcon = () => (
@@ -157,6 +159,30 @@ const FeatureCard = ({ title, description, icon }: { title: string; description:
 
 // Main Page Component
 export default function Home() {
+  const [stats, setStats] = useState({
+    manuscriptsCount: 0,
+    activeResearchersCount: 0,
+    languagesCount: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch(getApiUrl('/manuscripts/stats'));
+        const data = await response.json();
+        if (data.success) {
+          setStats(data.stats);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStats();
+  }, []);
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
@@ -333,10 +359,26 @@ export default function Home() {
             gridTemplateColumns: 'repeat(4, 1fr)',
             gap: '1.5rem',
           }}>
-            <StatsCard value="12,450+" label="Manuscripts Archived" icon={<BookIcon />} />
-            <StatsCard value="840+" label="Active Researchers" icon={<UsersIcon />} />
-            <StatsCard value="156" label="Languages Represented" icon={<GlobeIcon />} />
-            <StatsCard value="99.9%" label="Uptime Guarantee" icon={<ShieldIcon />} />
+            <StatsCard
+              value={loading ? '...' : stats.manuscriptsCount.toLocaleString()}
+              label="Manuscripts Archived"
+              icon={<BookIcon />}
+            />
+            <StatsCard
+              value={loading ? '...' : stats.activeResearchersCount.toLocaleString()}
+              label="Active Researchers"
+              icon={<UsersIcon />}
+            />
+            <StatsCard
+              value={loading ? '...' : stats.languagesCount.toString()}
+              label="Languages Represented"
+              icon={<GlobeIcon />}
+            />
+            <StatsCard
+              value="99.9%"
+              label="Uptime Guarantee"
+              icon={<ShieldIcon />}
+            />
           </div>
         </div>
       </section>

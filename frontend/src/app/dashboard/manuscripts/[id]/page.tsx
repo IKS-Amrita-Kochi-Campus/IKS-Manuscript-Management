@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchJsonWithAuth, getApiUrl, isAuthenticated } from '@/lib/api';
+import ImageViewer from '@/components/ImageViewer';
 
 // Icons
 const ArrowLeftIcon = () => (
@@ -105,6 +106,7 @@ export default function ManuscriptDetailPage() {
     const [success, setSuccess] = useState('');
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [bookmarkLoading, setBookmarkLoading] = useState(false);
+    const [viewingImage, setViewingImage] = useState<{ url: string; name: string; index: number } | null>(null);
 
     // Check if current user is the owner
     const isOwner = user && manuscript && user.id === manuscript.ownerId;
@@ -223,7 +225,7 @@ export default function ManuscriptDetailPage() {
         }
     };
 
-    const handleViewFile = async (fileIndex: number) => {
+    const handleViewFile = async (fileIndex: number, file: { name: string; mimetype: string }) => {
         try {
             const accessToken = localStorage.getItem('accessToken');
             const response = await fetch(getApiUrl(`/manuscripts/${id}/view/${fileIndex}`), {
@@ -240,7 +242,14 @@ export default function ManuscriptDetailPage() {
             // Get the blob and create a URL for it
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
+
+            // Check if it's an image - use ImageViewer
+            if (file.mimetype.startsWith('image/')) {
+                setViewingImage({ url, name: file.name, index: fileIndex });
+            } else {
+                // For PDFs and other files, open in new tab
+                window.open(url, '_blank');
+            }
         } catch (err: any) {
             console.error('View file error:', err);
             setError(err.message || 'Failed to view file');
@@ -577,7 +586,7 @@ export default function ManuscriptDetailPage() {
                                             </div>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                 <button
-                                                    onClick={() => handleViewFile(index)}
+                                                    onClick={() => handleViewFile(index, file)}
                                                     style={{
                                                         display: 'flex', alignItems: 'center', gap: '0.375rem',
                                                         padding: '0.5rem 0.875rem', fontSize: '0.8125rem', fontWeight: 500,
@@ -767,6 +776,20 @@ export default function ManuscriptDetailPage() {
                     to { transform: rotate(360deg); }
                 }
             `}</style>
+
+            {/* Image Viewer Modal */}
+            {viewingImage && (
+                <ImageViewer
+                    src={viewingImage.url}
+                    alt={viewingImage.name}
+                    onClose={() => {
+                        URL.revokeObjectURL(viewingImage.url);
+                        setViewingImage(null);
+                    }}
+                    onDownload={() => handleDownloadFile(viewingImage.index)}
+                    showDownload={isOwner || accessStatus.level === 'DOWNLOAD'}
+                />
+            )}
         </div>
     );
 }

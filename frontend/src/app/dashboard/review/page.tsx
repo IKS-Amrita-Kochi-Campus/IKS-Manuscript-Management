@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchJsonWithAuth, getApiUrl, isAuthenticated } from '@/lib/api';
+import ImageViewer from '@/components/ImageViewer';
 
 // Icons
 const DocumentIcon = () => (
@@ -114,7 +115,7 @@ export default function ReviewerDashboardPage() {
     const [reviewNotes, setReviewNotes] = useState('');
     const [filter, setFilter] = useState<'review' | 'draft' | 'published' | 'all'>('review');
     const [selectedAction, setSelectedAction] = useState<ReviewAction>(null);
-    const [viewingFile, setViewingFile] = useState<{ url: string; name: string } | null>(null);
+    const [viewingFile, setViewingFile] = useState<{ url: string; name: string; mimeType: string; manuscriptId: string; fileIndex: number } | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -209,7 +210,7 @@ export default function ReviewerDashboardPage() {
         }
     };
 
-    const viewFile = async (manuscriptId: string, fileIndex: number, fileName: string) => {
+    const viewFile = async (manuscriptId: string, fileIndex: number, fileName: string, mimeType: string) => {
         try {
             const accessToken = localStorage.getItem('accessToken');
             const response = await fetch(getApiUrl(`/manuscripts/${manuscriptId}/view/${fileIndex}`), {
@@ -224,7 +225,7 @@ export default function ReviewerDashboardPage() {
 
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
-            setViewingFile({ url, name: fileName });
+            setViewingFile({ url, name: fileName, mimeType, manuscriptId, fileIndex });
         } catch (err) {
             console.error('View file error:', err);
             setError('Failed to load file for viewing');
@@ -312,51 +313,64 @@ export default function ReviewerDashboardPage() {
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
             {/* File Viewer Modal */}
             {viewingFile && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0,0,0,0.8)',
-                    zIndex: 1000,
-                    display: 'flex',
-                    flexDirection: 'column',
-                }}>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '1rem 1.5rem',
-                        background: '#1e293b',
-                        color: 'white',
-                    }}>
-                        <span style={{ fontWeight: 500 }}>{viewingFile.name}</span>
-                        <button
-                            onClick={() => {
-                                URL.revokeObjectURL(viewingFile.url);
-                                setViewingFile(null);
-                            }}
-                            style={{
-                                background: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                padding: '0.5rem 1rem',
-                                cursor: 'pointer',
-                                fontWeight: 500,
-                            }}
-                        >
-                            Close Viewer
-                        </button>
-                    </div>
-                    <iframe
+                viewingFile.mimeType.startsWith('image/') ? (
+                    <ImageViewer
                         src={viewingFile.url}
-                        style={{
-                            flex: 1,
-                            border: 'none',
-                            background: 'white',
+                        alt={viewingFile.name}
+                        onClose={() => {
+                            URL.revokeObjectURL(viewingFile.url);
+                            setViewingFile(null);
                         }}
-                        title="File Viewer"
+                        onDownload={() => downloadFile(viewingFile.manuscriptId, viewingFile.fileIndex, viewingFile.name)}
+                        showDownload={true}
                     />
-                </div>
+                ) : (
+                    <div style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.8)',
+                        zIndex: 1000,
+                        display: 'flex',
+                        flexDirection: 'column',
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '1rem 1.5rem',
+                            background: '#1e293b',
+                            color: 'white',
+                        }}>
+                            <span style={{ fontWeight: 500 }}>{viewingFile.name}</span>
+                            <button
+                                onClick={() => {
+                                    URL.revokeObjectURL(viewingFile.url);
+                                    setViewingFile(null);
+                                }}
+                                style={{
+                                    background: '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    padding: '0.5rem 1rem',
+                                    cursor: 'pointer',
+                                    fontWeight: 500,
+                                }}
+                            >
+                                Close Viewer
+                            </button>
+                        </div>
+                        <iframe
+                            src={viewingFile.url}
+                            style={{
+                                flex: 1,
+                                border: 'none',
+                                background: 'white',
+                            }}
+                            title="File Viewer"
+                        />
+                    </div>
+                )
             )}
 
             <div style={{ marginBottom: '2rem' }}>
@@ -644,7 +658,7 @@ export default function ReviewerDashboardPage() {
                                                 </div>
                                                 <div style={{ display: 'flex', gap: '0.375rem' }}>
                                                     <button
-                                                        onClick={() => viewFile(selectedManuscript._id, index, file.originalName)}
+                                                        onClick={() => viewFile(selectedManuscript._id, index, file.originalName, file.mimeType)}
                                                         style={{
                                                             display: 'flex',
                                                             alignItems: 'center',

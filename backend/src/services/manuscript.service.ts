@@ -563,3 +563,27 @@ export async function getFilterOptions(): Promise<{
         repositories: repositories.filter(Boolean).sort(),
     };
 }
+
+/**
+ * Get public statistics
+ */
+export async function getPublicStatistics(): Promise<{
+    manuscriptsCount: number;
+    activeResearchersCount: number;
+    languagesCount: number;
+}> {
+    const Manuscript = getManuscriptModel();
+    const query = { deletedAt: { $exists: false }, status: 'published' };
+
+    const [manuscriptsCount, languages, activeResearchersCount] = await Promise.all([
+        Manuscript.countDocuments(query),
+        Manuscript.distinct('languages', query),
+        userRepo.count({ is_active: true } as any)
+    ]);
+
+    return {
+        manuscriptsCount,
+        activeResearchersCount: activeResearchersCount || 0,
+        languagesCount: languages.length
+    };
+}

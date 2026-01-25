@@ -6,7 +6,7 @@ import morgan from 'morgan';
 import compression from 'compression';
 import { config } from './config/index.js';
 import { connectAllDatabases, disconnectAllDatabases } from './config/database.js';
-import { auditLog, apiLimiter } from './middleware/index.js';
+import { auditLog, apiLimiter, burstLimiter } from './middleware/index.js';
 import routes from './routes/index.js';
 import ensureLatestCode from './utils/startup-recovery.js';
 
@@ -22,8 +22,43 @@ const app = express();
 // Set to 1 for single reverse proxy, adjust number based on your setup
 app.set('trust proxy', 1);
 
-// Security middleware
-app.use(helmet());
+// Security middleware with comprehensive configuration
+app.use(helmet({
+    // Content Security Policy
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+            imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://challenges.cloudflare.com'],
+            frameSrc: ["'self'", 'https://challenges.cloudflare.com'],
+            connectSrc: ["'self'", 'https://api.ikskochi.org', 'https://challenges.cloudflare.com'],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: config.env === 'production' ? [] : null,
+        },
+    },
+    // Prevent clickjacking
+    frameguard: { action: 'deny' },
+    // Prevent MIME type sniffing
+    noSniff: true,
+    // XSS Protection
+    xssFilter: true,
+    // Hide X-Powered-By header
+    hidePoweredBy: true,
+    // HTTP Strict Transport Security (only in production)
+    hsts: config.env === 'production' ? {
+        maxAge: 31536000, // 1 year
+        includeSubDomains: true,
+        preload: true,
+    } : false,
+    // Referrer Policy
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    // Cross-Origin settings
+    crossOriginEmbedderPolicy: false, // May need to be false if embedding external resources
+    crossOriginOpenerPolicy: { policy: 'same-origin' },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 // CORS configuration - allow multiple origins in development
 const allowedOrigins = [
@@ -68,6 +103,9 @@ if (config.env !== 'test') {
 }
 
 // Rate limiting
+// Burst limiter for DDoS protection (30 requests per 10 seconds)
+app.use(burstLimiter);
+// General API rate limiter (100 requests per minute)
 app.use(config.apiPrefix, apiLimiter);
 app.use(apiLimiter); // Also apply globally as fallback
 

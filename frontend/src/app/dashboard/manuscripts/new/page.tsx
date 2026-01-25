@@ -97,7 +97,41 @@ export default function NewManuscriptPage() {
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            const newFiles = Array.from(e.target.files).map(file => ({
+            const selectedFiles = Array.from(e.target.files);
+
+            // Validation
+            const validFiles: File[] = [];
+            let errorMsg = '';
+
+            if (files.length + selectedFiles.length > 10) {
+                setError('You can only upload up to 10 files per manuscript.');
+                return;
+            }
+
+            for (const file of selectedFiles) {
+                if (file.type !== 'application/pdf') {
+                    errorMsg = 'Only PDF files are allowed.';
+                    continue;
+                }
+                if (file.size > 100 * 1024 * 1024) {
+                    errorMsg = `File ${file.name} exceeds the 100MB limit.`;
+                    continue;
+                }
+                validFiles.push(file);
+            }
+
+            if (errorMsg && validFiles.length === 0) {
+                setError(errorMsg);
+                return;
+            }
+
+            if (validFiles.length < selectedFiles.length) {
+                setError('Some files were skipped because they were not PDFs or exceeded 100MB.');
+            } else {
+                setError('');
+            }
+
+            const newFiles = validFiles.map(file => ({
                 file,
                 progress: 0,
                 status: 'pending' as const,
@@ -531,7 +565,7 @@ export default function NewManuscriptPage() {
                                     ref={fileInputRef}
                                     type="file"
                                     multiple
-                                    accept=".pdf,.jpg,.jpeg,.png,.tiff"
+                                    accept=".pdf"
                                     onChange={handleFileSelect}
                                     style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
                                     disabled={isUploading}
@@ -539,7 +573,45 @@ export default function NewManuscriptPage() {
                                 <div style={{ color: '#94a3b8' }}>
                                     <UploadIcon />
                                     <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>Click to select files or drag and drop</div>
-                                    <div style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>PDF, JPG, PNG, TIFF (max 50MB each)</div>
+                                    <div style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                                        PDF only (max 100MB each, up to 10 files)
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Image to PDF Helper */}
+                            <div style={{
+                                padding: '1rem',
+                                background: '#f0f9ff',
+                                border: '1px solid #bae6fd',
+                                borderRadius: '8px',
+                                fontSize: '0.875rem',
+                                color: '#0369a1',
+                                display: 'flex',
+                                gap: '0.75rem',
+                                alignItems: 'flex-start'
+                            }}>
+                                <div style={{ flexShrink: 0, marginTop: '2px' }}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <line x1="12" y1="16" x2="12" y2="12" />
+                                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Only PDF files are allowed</div>
+                                    <div>
+                                        Need to upload images? Please convert them to PDF first. You can use a free online tool like{' '}
+                                        <a
+                                            href="https://www.ilovepdf.com/jpg_to_pdf"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ color: '#0284c7', textDecoration: 'underline', fontWeight: 500 }}
+                                        >
+                                            iLovePDF
+                                        </a>
+                                        {' '}or similar services to combine your images into a PDF document.
+                                    </div>
                                 </div>
                             </div>
 

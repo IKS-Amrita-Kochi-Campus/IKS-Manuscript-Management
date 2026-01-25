@@ -328,6 +328,18 @@ export async function getFilters(req: Request, res: Response): Promise<void> {
 }
 
 /**
+ * Get public statistics
+ */
+export async function getPublicStats(req: Request, res: Response): Promise<void> {
+    const stats = await manuscriptService.getPublicStatistics();
+
+    res.json({
+        success: true,
+        stats,
+    });
+}
+
+/**
  * View manuscript file (secure streaming)
  */
 export async function viewFile(req: Request, res: Response): Promise<void> {
