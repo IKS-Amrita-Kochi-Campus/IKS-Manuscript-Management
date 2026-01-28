@@ -313,7 +313,7 @@ export default function ReviewerDashboardPage() {
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
             {/* File Viewer Modal */}
             {viewingFile && (
-                viewingFile.mimeType.startsWith('image/') ? (
+                (viewingFile.mimeType && viewingFile.mimeType.startsWith('image/')) ? (
                     <ImageViewer
                         src={viewingFile.url}
                         alt={viewingFile.name}

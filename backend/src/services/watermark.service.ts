@@ -182,7 +182,7 @@ export function createWatermarkMetadata(options: WatermarkOptions): Record<strin
 function buildWatermarkText(options: WatermarkOptions): string {
     const dateStr = options.timestamp.toISOString().split('T')[0];
     const websiteUrl = 'https://ikskochi.org';
-    return `Amrita Vishwa Vidyapeetham, Kochi | Uploaded by - ${options.userId} | ${dateStr} | ${websiteUrl}`;
+    return `Amrita Vishwa Vidyapeetham, Kochi | Uploaded by - ${options.userName} | ${dateStr} | ${websiteUrl}`;
 }
 
 /**

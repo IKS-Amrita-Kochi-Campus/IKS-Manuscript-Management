@@ -74,7 +74,7 @@ interface Manuscript {
     ownerId: string;
     files?: Array<{
         name: string;
-        mimetype: string;
+        mimeType: string;
         size: number;
     }>;
 }
@@ -226,7 +226,7 @@ export default function ManuscriptDetailPage() {
         }
     };
 
-    const handleViewFile = async (fileIndex: number, file: { name: string; mimetype: string }) => {
+    const handleViewFile = async (fileIndex: number, file: { name: string; mimeType: string }) => {
         try {
             const accessToken = localStorage.getItem('accessToken');
             const response = await fetch(getApiUrl(`/manuscripts/${id}/view/${fileIndex}`), {
@@ -245,8 +245,7 @@ export default function ManuscriptDetailPage() {
             const url = URL.createObjectURL(blob);
 
             // Check if it's an image - use ImageViewer
-            const mimetype = file.mimetype || '';
-            if (mimetype.startsWith('image/')) {
+            if (file.mimeType && file.mimeType.startsWith('image/')) {
                 setViewingImage({ url, name: file.name, index: fileIndex });
             } else {
                 // For PDFs and other files, open in new tab
@@ -647,7 +646,7 @@ export default function ManuscriptDetailPage() {
                                         }}>
                                             <div>
                                                 <div style={{ fontSize: '0.9375rem', fontWeight: 500, color: '#0f172a' }}>{file.name}</div>
-                                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{(file.size / 1024 / 1024).toFixed(2)} MB • {file.mimetype}</div>
+                                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{(file.size / 1024 / 1024).toFixed(2)} MB • {file.mimeType}</div>
                                             </div>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                 <button
