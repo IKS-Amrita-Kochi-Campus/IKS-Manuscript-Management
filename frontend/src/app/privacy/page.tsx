@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
                         <section style={{ marginBottom: '2.5rem' }}>
                             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>1. Introduction</h2>
                             <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '1rem' }}>
-                                The Indigenous Knowledge Systems (IKS) Platform is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website and use our research services.
+                                The Indian Knowledge Systems (IKS) Platform is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website and use our research services.
                             </p>
                         </section>
 

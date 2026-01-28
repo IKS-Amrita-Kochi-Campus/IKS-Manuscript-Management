@@ -145,7 +145,7 @@ export const Footer: React.FC = () => {
                     alignItems: 'center',
                 }}>
                     <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-                        © {currentYear} Indigenous Knowledge Systems. All rights reserved.
+                        © {currentYear} Indian Knowledge Systems. All rights reserved.
                     </p>
                     <div style={{ display: 'flex', gap: '1.5rem' }}>
                         <Link href="#" style={{ fontSize: '0.875rem', color: '#64748b', textDecoration: 'none' }}>

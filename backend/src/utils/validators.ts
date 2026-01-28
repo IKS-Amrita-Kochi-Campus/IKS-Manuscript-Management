@@ -71,6 +71,7 @@ export const manuscriptSchema = z.object({
     origin: z.string().optional(),
     repository: z.string().optional(),
     repositoryId: z.string().optional(),
+    doi: z.string().optional(),
     abstract: z.string().optional(),
     incipit: z.string().optional(),
     explicit: z.string().optional(),

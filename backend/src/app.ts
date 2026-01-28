@@ -97,9 +97,14 @@ app.use(cookieParser()); // Parse cookies
 // Compression
 app.use(compression());
 
+import { httpLogger } from './middleware/logger.middleware.js';
+
+// ...
+
 // Logging
+// if (config.env !== 'test') { // HTTP Logger handles environment checks internally if needed, or we keep checks
 if (config.env !== 'test') {
-    app.use(morgan('combined'));
+    app.use(httpLogger);
 }
 
 // Rate limiting

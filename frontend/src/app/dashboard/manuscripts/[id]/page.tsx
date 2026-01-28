@@ -69,6 +69,7 @@ interface Manuscript {
     abstract?: string;
     centuryEstimate?: string;
     origin?: string;
+    doi?: string;
     viewCount?: number;
     ownerId: string;
     files?: Array<{
@@ -293,6 +294,69 @@ export default function ManuscriptDetailPage() {
         } catch (err: any) {
             console.error('Download file error:', err);
             setError(err.message || 'Failed to download file');
+        }
+    };
+
+    const handleExport = async (format: 'bibtex' | 'ris') => {
+        try {
+            const response = await fetch(getApiUrl(`/manuscripts/${id}/citation?format=${format}`), {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to export citation');
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const extension = format === 'bibtex' ? 'bib' : 'ris';
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `citation-${id}.${extension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err: any) {
+            console.error('Export error:', err);
+            setError(err.message || 'Failed to export citation');
+        }
+    };
+
+    const handleAssignDoi = async () => {
+        if (!confirm('Are you sure you want to assign a permanent DOI/Handle to this manuscript? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            // Use local loading state to avoid full page spinner if desired, but reusing setLoading is fine for now
+            // actually setLoading(true) will replace the whole UI with spinner which might be jarring.
+            // Let's rely on optimistics or just assume it's fast.
+            // But verify calls usually take time.
+            // I'll skip global loading for now to keep UI visible.
+
+            const response = await fetchJsonWithAuth<{ success: boolean; doi: string; message?: string }>(
+                getApiUrl(`/manuscripts/${id}/doi`),
+                { method: 'POST' }
+            );
+
+            if (response.success) {
+                setManuscript(prev => prev ? ({ ...prev, doi: response.doi }) : null);
+                setSuccess('Permanent Handle assigned successfully');
+            } else {
+                // setError('Failed to assign DOI');
+                // fetchJsonWithAuth logs error but returns success: false if handled?
+                // No, fetchJsonWithAuth throws if !response.ok usually, unless it parses error.
+                // If it returns {success:false}, I show error.
+                setError('Failed to assign DOI');
+            }
+        } catch (err: any) {
+            console.error('Assign DOI error:', err);
+            setError(err.message || 'Failed to assign DOI');
         }
     };
 
@@ -704,6 +768,79 @@ export default function ManuscriptDetailPage() {
                             <div>
                                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.125rem' }}>View Count</div>
                                 <div style={{ fontSize: '0.875rem', color: '#475569' }}>{manuscript.viewCount || 0} views</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Identifiers & Actions */}
+                    <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                        <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>
+                            Identifiers & Citation
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            {/* DOI Section */}
+                            {(manuscript.doi || isOwner) && (
+                                <div>
+                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        Permanent Handle
+                                    </div>
+                                    {manuscript.doi ? (
+                                        <div style={{
+                                            fontSize: '0.8125rem', color: '#0369a1', fontFamily: 'ui-monospace, monospace',
+                                            background: '#f0f9ff', padding: '0.5rem', borderRadius: '6px', border: '1px solid #e0f2fe',
+                                            wordBreak: 'break-all'
+                                        }}>
+                                            {manuscript.doi}
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <button
+                                                onClick={handleAssignDoi}
+                                                style={{
+                                                    width: '100%', padding: '0.5rem', fontSize: '0.8125rem', fontWeight: 500,
+                                                    color: 'white', background: '#334155', border: 'none', borderRadius: '6px',
+                                                    cursor: 'pointer', transition: 'background 0.15s'
+                                                }}
+                                                onMouseOver={(e) => e.currentTarget.style.background = '#1e293b'}
+                                                onMouseOut={(e) => e.currentTarget.style.background = '#334155'}
+                                            >
+                                                Assign Handle (DOI)
+                                            </button>
+                                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.375rem', lineHeight: 1.4 }}>
+                                                Generate a unique persistent identifier for this manuscript.
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Citation Export */}
+                            <div>
+                                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Export Citation
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                    <button
+                                        onClick={() => handleExport('bibtex')}
+                                        style={{
+                                            padding: '0.5rem', fontSize: '0.8125rem', fontWeight: 500,
+                                            color: '#334155', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px',
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}
+                                    >
+                                        BibTeX
+                                    </button>
+                                    <button
+                                        onClick={() => handleExport('ris')}
+                                        style={{
+                                            padding: '0.5rem', fontSize: '0.8125rem', fontWeight: 500,
+                                            color: '#334155', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px',
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}
+                                    >
+                                        RIS
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

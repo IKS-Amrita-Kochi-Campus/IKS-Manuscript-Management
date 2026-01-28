@@ -229,7 +229,7 @@ export default function Home() {
             margin: '0 auto 1.5rem',
           }}>
             Digital Archive for<br />
-            <span style={{ color: '#059669' }}>Indigenous Knowledge</span>
+            <span style={{ color: '#059669' }}>Indian Knowledge</span>
           </h1>
 
           <p style={{
@@ -408,7 +408,7 @@ export default function Home() {
               maxWidth: '600px',
               margin: '0 auto',
             }}>
-              Built for scholars, archivists, and researchers who need reliable tools for preserving and studying indigenous knowledge.
+              Built for scholars, archivists, and researchers who need reliable tools for preserving and studying Indian knowledge.
             </p>
           </div>
 
@@ -476,7 +476,7 @@ export default function Home() {
             maxWidth: '500px',
             margin: '0 auto 2rem',
           }}>
-            Join thousands of researchers who trust our platform for their indigenous knowledge research needs.
+            Join thousands of researchers who trust our platform for their Indian knowledge research needs.
           </p>
           <div style={{
             display: 'flex',

@@ -6,6 +6,7 @@ import accessRoutes from './access.routes.js';
 import adminRoutes from './admin.routes.js';
 import bookmarkRoutes from './bookmark.routes.js';
 import settingsRoutes from './settings.routes.js';
+import logRoutes from './log.routes.js';
 
 const router = Router();
 
@@ -26,6 +27,7 @@ router.use('/access-requests', accessRoutes);
 router.use('/admin', adminRoutes);
 router.use('/bookmarks', bookmarkRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/logs', logRoutes);
 
 export default router;
 

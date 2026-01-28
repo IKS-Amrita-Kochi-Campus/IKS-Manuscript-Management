@@ -42,7 +42,7 @@ export default function TermsOfService() {
                         <section style={{ marginBottom: '2.5rem' }}>
                             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>1. Acceptance of Terms</h2>
                             <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '1rem' }}>
-                                By accessing and using the Indigenous Knowledge Systems (IKS) Platform, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.
+                                By accessing and using the Indian Knowledge Systems (IKS) Platform, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.
                             </p>
                         </section>
 

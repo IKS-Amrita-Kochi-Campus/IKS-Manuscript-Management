@@ -67,7 +67,7 @@ export const Header: React.FC = () => {
                         fontWeight: 600,
                         color: '#0f172a',
                     }}>
-                        Indigenous Knowledge Systems
+                        Indian Knowledge Systems
                     </span>
                 </Link>
 

@@ -47,6 +47,7 @@ export interface IManuscript {
     repositoryId?: string;
     shelfMark?: string;
     accessionNumber?: string;
+    doi?: string;
 
     // Content
     abstract: string;
@@ -140,6 +141,7 @@ const ManuscriptSchema = new Schema<IManuscript>(
         repositoryId: { type: String },
         shelfMark: { type: String },
         accessionNumber: { type: String },
+        doi: { type: String, unique: true, sparse: true, index: true },
         abstract: { type: String, required: true, index: 'text' },
         incipit: { type: String },
         explicit: { type: String },

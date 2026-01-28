@@ -7,6 +7,8 @@ import { decryptFile } from '../utils/encryption.js';
 import { watermarkPdf, watermarkImage } from '../services/watermark.service.js';
 import { ManuscriptInput, SearchInput } from '../utils/validators.js';
 import * as settingsRepo from '../repositories/settings.repository.js';
+import { CitationService } from '../services/citation.service.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Create manuscript
@@ -560,7 +562,7 @@ export async function downloadFile(req: Request, res: Response): Promise<void> {
         res.setHeader('Content-Length', finalContent.length);
         res.send(finalContent);
     } catch (error) {
-        console.error('Download file error:', error);
+        logger.error('Download file error:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to download file',
@@ -568,3 +570,118 @@ export async function downloadFile(req: Request, res: Response): Promise<void> {
         });
     }
 }
+
+/**
+ * Export citation
+ */
+export async function exportCitation(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    const { format } = req.query;
+    const userId = req.user?.userId;
+    const ipAddress = req.ip || req.socket.remoteAddress || 'unknown';
+
+    // Get manuscript (metadata is public/restricted usually, but better to check access)
+    // Using getManuscriptById which handles access checks internaly (returns partial if not allowed?)
+    const result = await manuscriptService.getManuscriptById(id, userId, ipAddress);
+
+    if (!result.success || !result.manuscript) {
+        res.status(404).json({
+            success: false,
+            error: result.error || 'Manuscript not found',
+            code: result.code,
+        });
+        return;
+    }
+
+    const manuscript = result.manuscript;
+
+    // Check visibility if needed, but getManuscriptById checks this usually.
+    // If it's private and user has no access, it shouldn't be returned or should be handled.
+
+    let citation = '';
+    let contentType = 'text/plain';
+    let extension = 'txt';
+
+    if (format === 'bibtex') {
+        citation = CitationService.generateBibTeX(manuscript);
+        contentType = 'application/x-bibtex';
+        extension = 'bib';
+    } else if (format === 'ris') {
+        citation = CitationService.generateRIS(manuscript);
+        contentType = 'application/x-research-info-systems';
+        extension = 'ris';
+    } else {
+        res.status(400).json({
+            success: false,
+            error: 'Invalid format. Supported formats: bibtex, ris',
+            code: 'INVALID_FORMAT',
+        });
+        return;
+    }
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${manuscript._id}.${extension}"`);
+    res.send(citation);
+}
+
+/**
+ * Assign DOI/Permanent Handle
+ */
+export async function assignDoi(req: Request, res: Response): Promise<void> {
+    if (!req.user) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+    }
+
+    const { id } = req.params;
+
+    // Check if user is owner or admin
+    const manuscriptResult = await manuscriptService.getManuscriptById(id, req.user.userId, 'unknown');
+    if (!manuscriptResult.success || !manuscriptResult.manuscript) {
+        res.status(404).json({ success: false, error: 'Manuscript not found' });
+        return;
+    }
+
+    // Only owner or admin should assign DOI
+    const isOwner = manuscriptResult.manuscript.ownerId === req.user.userId;
+    // Check for admin role needs looking up user, or we assume route middleware handles 'REVIEWER'/'ADMIN' via something else.
+    // accessService.checkAccess doesn't check for "assign DOI".
+    // For now allow Owner.
+
+    if (!isOwner) { // strict check
+        // We might want to allow Admins too. 
+        const user = await userRepo.findById(req.user.userId);
+        if (user?.role !== 'ADMIN') {
+            res.status(403).json({ success: false, error: 'Only owner or admin can assign DOI' });
+            return;
+        }
+    }
+
+    if (manuscriptResult.manuscript.doi) {
+        res.json({
+            success: true,
+            doi: manuscriptResult.manuscript.doi,
+            message: 'Manuscript already has a DOI',
+        });
+        return;
+    }
+
+    // Generate specific DOI/Handle
+    // Format: 10.5555/IKS.{shortId}
+    const shortId = id.substring(0, 8);
+    const newDoi = `10.5555/IKS.${shortId}`; // Simulated Handle
+
+    const updateResult = await manuscriptService.updateManuscript(id, { doi: newDoi } as any, req.user.userId);
+
+    if (!updateResult.success) {
+        res.status(500).json({ success: false, error: 'Failed to assign DOI' });
+        return;
+    }
+
+    res.json({
+        success: true,
+        doi: newDoi,
+        manuscript: updateResult.manuscript,
+    });
+}
+

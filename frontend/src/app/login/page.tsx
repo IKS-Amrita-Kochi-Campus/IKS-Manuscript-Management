@@ -145,7 +145,7 @@ export default function LoginPage() {
                         lineHeight: 1.3,
                         marginBottom: '1rem',
                     }}>
-                        Indigenous Knowledge Systems
+                        Indian Knowledge Systems
                     </h1>
                     <p style={{
                         fontSize: '1rem',

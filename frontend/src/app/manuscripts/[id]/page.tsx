@@ -120,7 +120,7 @@ const Header = () => (
                     fontWeight: 600,
                     color: '#0f172a',
                 }}>
-                    Indigenous Knowledge Systems
+                    Indian Knowledge Systems
                 </span>
             </Link>
 
@@ -195,7 +195,7 @@ const Footer = () => (
             alignItems: 'center',
         }}>
             <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-                © {new Date().getFullYear()} Indigenous Knowledge Systems. All rights reserved.
+                © {new Date().getFullYear()} Indian Knowledge Systems. All rights reserved.
             </p>
             <div style={{ display: 'flex', gap: '1.5rem' }}>
                 <Link href="/manuscripts" style={{ fontSize: '0.875rem', color: '#64748b', textDecoration: 'none' }}>

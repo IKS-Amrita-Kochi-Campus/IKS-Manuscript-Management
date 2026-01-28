@@ -3,6 +3,7 @@
  */
 
 import { User, RegisterData, LoginResponse, AuthTokens } from '@/types';
+import { logger } from './logger';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -86,7 +87,7 @@ export async function fetchCsrfToken(): Promise<string | null> {
         }
         return null;
     } catch (error) {
-        console.error('Failed to fetch CSRF token:', error);
+        logger.error('Failed to fetch CSRF token:', error);
         return null;
     }
 }
@@ -123,7 +124,7 @@ async function refreshAccessToken(): Promise<boolean> {
 
         return false;
     } catch (error) {
-        console.error('Token refresh failed:', error);
+        logger.error('Token refresh failed:', error);
         return false;
     }
 }
@@ -227,6 +228,11 @@ export async function fetchJsonWithAuth<T = unknown>(
     options: RequestInit = {}
 ): Promise<T> {
     const response = await fetchWithAuth(url, options);
+    if (!response.ok) {
+        const errorBody = await response.json();
+        logger.error('API Request Failed', { url, status: response.status, error: errorBody });
+        throw new Error(errorBody.message || errorBody.error || 'API request failed');
+    }
     return response.json();
 }
 
@@ -254,7 +260,7 @@ export async function logout(): Promise<void> {
         });
     } catch (error) {
         // Ignore errors during logout
-        console.error('Logout error:', error);
+        logger.error('Logout error:', error);
     } finally {
         clearAuthAndRedirect();
     }
