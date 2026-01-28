@@ -55,12 +55,25 @@ interface FileUploadStatus {
     error?: string;
 }
 
+const CATEGORY_OPTIONS = [
+    { value: 'Epic', label: 'Epic' },
+    { value: 'Ancient', label: 'Ancient' },
+    { value: 'Philosophy', label: 'Philosophy' },
+    { value: 'Literature', label: 'Literature' },
+    { value: 'Mythology', label: 'Mythology' },
+    { value: 'Science', label: 'Science & Mathematics' },
+    { value: 'Medicine', label: 'Medicine (Ayurveda)' },
+    { value: 'Arts', label: 'Arts & Architecture' },
+    { value: 'Religion', label: 'Religion & Rituals' },
+];
+
 export default function NewManuscriptPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isCustomCategory, setIsCustomCategory] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Form Data
@@ -93,6 +106,17 @@ export default function NewManuscriptPage() {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleCategorySelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (value === 'Other') {
+            setIsCustomCategory(true);
+            setFormData(prev => ({ ...prev, category: '' }));
+        } else {
+            setIsCustomCategory(false);
+            setFormData(prev => ({ ...prev, category: value }));
+        }
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -411,15 +435,29 @@ export default function NewManuscriptPage() {
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#475569', marginBottom: '0.5rem' }}>Category *</label>
-                                        <input
+                                        <select
                                             required
-                                            type="text"
-                                            name="category"
-                                            value={formData.category}
-                                            onChange={handleInputChange}
-                                            placeholder="e.g., Epic, Philosophy"
-                                            style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', outline: 'none' }}
-                                        />
+                                            value={isCustomCategory ? 'Other' : formData.category}
+                                            onChange={handleCategorySelectChange}
+                                            style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', outline: 'none', background: 'white' }}
+                                        >
+                                            <option value="">Select a Category</option>
+                                            {CATEGORY_OPTIONS.map(opt => (
+                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            ))}
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        {isCustomCategory && (
+                                            <input
+                                                required
+                                                type="text"
+                                                name="category"
+                                                value={formData.category}
+                                                onChange={handleInputChange}
+                                                placeholder="Specify category..."
+                                                style={{ width: '100%', marginTop: '0.5rem', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem', outline: 'none' }}
+                                            />
+                                        )}
                                     </div>
                                 </div>
 
