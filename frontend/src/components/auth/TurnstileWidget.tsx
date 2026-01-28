@@ -23,15 +23,30 @@ export default function TurnstileWidget({ siteKey, onVerify, onError, onExpire, 
     const widgetIdRef = useRef<string | null>(null);
 
     useEffect(() => {
+        let mounted = true;
+
         // Function to render the widget
         const renderWidget = () => {
+            if (!mounted) return;
+
             if (window.turnstile && containerRef.current && !widgetIdRef.current) {
                 try {
+                    // clear container just in case
+                    if (containerRef.current.innerHTML !== '') {
+                        containerRef.current.innerHTML = '';
+                    }
+
                     widgetIdRef.current = window.turnstile.render(containerRef.current, {
                         sitekey: siteKey,
-                        callback: onVerify,
-                        'error-callback': onError,
-                        'expired-callback': onExpire,
+                        callback: (token: string) => {
+                            if (mounted) onVerify(token);
+                        },
+                        'error-callback': (err: any) => {
+                            if (mounted && onError) onError(err);
+                        },
+                        'expired-callback': () => {
+                            if (mounted && onExpire) onExpire();
+                        },
                         action: action,
                         theme: 'light',
                     });
@@ -51,8 +66,10 @@ export default function TurnstileWidget({ siteKey, onVerify, onError, onExpire, 
                 const checkInterval = setInterval(() => {
                     if (window.turnstile) {
                         clearInterval(checkInterval);
-                        setIsLoaded(true);
-                        renderWidget();
+                        if (mounted) {
+                            setIsLoaded(true);
+                            renderWidget();
+                        }
                     }
                 }, 100);
                 return () => clearInterval(checkInterval);
@@ -65,14 +82,17 @@ export default function TurnstileWidget({ siteKey, onVerify, onError, onExpire, 
             script.defer = true;
 
             script.onload = () => {
-                setIsLoaded(true);
-                renderWidget();
+                if (mounted) {
+                    setIsLoaded(true);
+                    renderWidget();
+                }
             };
 
             document.head.appendChild(script);
         }
 
         return () => {
+            mounted = false;
             if (widgetIdRef.current && window.turnstile) {
                 try {
                     window.turnstile.remove(widgetIdRef.current);
@@ -82,7 +102,7 @@ export default function TurnstileWidget({ siteKey, onVerify, onError, onExpire, 
                 }
             }
         };
-    }, [siteKey, onVerify, onError, onExpire, action]);
+    }, [siteKey, action]); // Removed callbacks from dependencies to prevent re-renders
 
     return (
         <div

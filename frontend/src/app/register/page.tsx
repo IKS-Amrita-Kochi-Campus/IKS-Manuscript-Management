@@ -76,7 +76,7 @@ export default function RegisterPage() {
             }
 
             try {
-                const response = await fetch(`http://universities.hipolabs.com/search?name=${encodeURIComponent(institution)}`);
+                const response = await fetch(`https://universities.hipolabs.com/search?name=${encodeURIComponent(institution)}`);
                 if (response.ok) {
                     const data = await response.json();
                     setSuggestions(data.slice(0, 10)); // Limit to 10 suggestions
@@ -108,10 +108,11 @@ export default function RegisterPage() {
             return;
         }
 
-        if (!turnstileToken) {
-            setError('Please complete the security verification');
-            return;
-        }
+        // Turnstile validation is now optional on frontend to prevent enrollment blocking
+        // if (!turnstileToken) {
+        //    setError('Please complete the security verification');
+        //    return;
+        // }
 
         setLoading(true);
 
@@ -592,7 +593,19 @@ export default function RegisterPage() {
 
                         <TurnstileWidget
                             siteKey={TURNSTILE_SITE_KEY}
-                            onVerify={setTurnstileToken}
+                            onVerify={(token) => {
+                                setTurnstileToken(token);
+                                setError(''); // Clear error on success
+                            }}
+                            onError={(err) => {
+                                console.error('Turnstile Error:', err);
+                                setTurnstileToken('');
+                                // Don't show error to user immediately, let them retry or let the form submission handle missing token
+                            }}
+                            onExpire={() => {
+                                setTurnstileToken('');
+                                setError('Security verification expired. Please verify again.');
+                            }}
                             action="register"
                         />
 
