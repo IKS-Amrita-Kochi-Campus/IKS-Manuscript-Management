@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { fetchJsonWithAuth, getApiUrl, isAuthenticated, logout } from '@/lib/api';
 import { UserRole } from '@/types';
 import Image from 'next/image';
+import { NotificationDropdown } from '@/components/layout/NotificationDropdown';
 
 // Icon Components
 const DashboardIcon = () => (
@@ -356,7 +357,7 @@ export default function DashboardLayout({
                     >
                         <MenuIcon />
                     </button>
-                    <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
+                    <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
                         <div style={{
                             position: 'relative',
                             width: '40px',
@@ -388,31 +389,7 @@ export default function DashboardLayout({
                     alignItems: 'center',
                     gap: '1rem',
                 }}>
-                    <button style={{
-                        width: '40px',
-                        height: '40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        cursor: 'pointer',
-                        color: '#64748b',
-                        position: 'relative',
-                    }}>
-                        <BellIcon />
-                        <span style={{
-                            position: 'absolute',
-                            top: '8px',
-                            right: '8px',
-                            width: '8px',
-                            height: '8px',
-                            background: '#dc2626',
-                            borderRadius: '50%',
-                            border: '2px solid white',
-                        }} />
-                    </button>
+                    <NotificationDropdown />
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',

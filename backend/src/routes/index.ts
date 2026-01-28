@@ -8,6 +8,8 @@ import bookmarkRoutes from './bookmark.routes.js';
 import settingsRoutes from './settings.routes.js';
 import logRoutes from './log.routes.js';
 
+import notificationRoutes from './notification.routes.js';
+
 const router = Router();
 
 // Health check
@@ -28,6 +30,7 @@ router.use('/admin', adminRoutes);
 router.use('/bookmarks', bookmarkRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/logs', logRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;
 
