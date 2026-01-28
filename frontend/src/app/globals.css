@@ -618,13 +618,59 @@ a:hover {
 
   .split-layout-right {
     width: 100%;
-    max-width: 540px;
+    max-width: 480px;
+    /* Slightly tighter for better readability */
     margin: 0 auto;
-    background: transparent;
+    background: white;
+    /* Maintain white background card feel */
+    border-radius: var(--radius-xl);
+    /* Add rounded corners on tablet/mobile if desired, or keep flat */
+    box-shadow: var(--shadow-lg);
+    /* Add shadow to pop out from surface */
+    margin-top: 2rem;
+    margin-bottom: 2rem;
   }
 
   .split-layout-container {
     justify-content: center;
+    padding: 1rem;
+    /* Add outer padding so it doesn't touch edges */
+    align-items: center;
+    /* Vertically center */
+  }
+}
+
+@media (max-width: 640px) {
+  .split-layout-right {
+    padding: 1.5rem;
+    /* Reduce inner padding */
+    box-shadow: none;
+    /* Simplify for mobile, or keep if preferred */
+    background: transparent;
+    /* Or keep white. Let's make it look like part of the page */
+    border: none;
+    margin: 0;
+  }
+
+  /* On very small screens, maybe white background is better to separate from gray body? */
+  /* Reverting to simple clean look */
+  .split-layout-right {
+    background: white;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+}
+
+.mobile-auth-header {
+  display: none;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .mobile-auth-header {
+    display: block;
   }
 }
 

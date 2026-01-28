@@ -45,6 +45,17 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
 export async function getUserById(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
 
+    // Validate UUID format to prevent DB errors
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!id || !uuidRegex.test(id)) {
+        res.status(400).json({
+            success: false,
+            error: 'Invalid user ID format',
+            code: 'INVALID_ID',
+        });
+        return;
+    }
+
     const user = await userRepo.findById(id);
 
     if (!user) {

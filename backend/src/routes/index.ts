@@ -30,7 +30,7 @@ router.use('/admin', adminRoutes);
 router.use('/bookmarks', bookmarkRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/logs', logRoutes);
-router.use('/notifications', notificationRoutes);
+router.use('/user-alerts', notificationRoutes);
 
 export default router;
 

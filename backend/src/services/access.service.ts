@@ -8,8 +8,8 @@ interface AccessRequestInput {
     manuscriptId: string;
     requestedLevel: AccessLevel;
     purpose: string;
-    institution: string;
-    justification: string;
+    institution?: string;
+    justification?: string;
     duration?: number;
 }
 

@@ -35,7 +35,7 @@ export const NotificationDropdown = () => {
     const fetchNotifications = async () => {
         try {
             const response = await fetchJsonWithAuth<{ success: boolean; notifications: Notification[]; unreadCount: number }>(
-                getApiUrl('/notifications')
+                getApiUrl('/user-alerts')
             );
             if (response.success) {
                 setNotifications(response.notifications);
@@ -70,7 +70,7 @@ export const NotificationDropdown = () => {
             setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
 
-            await fetchJsonWithAuth(getApiUrl(`/notifications/${id}/read`), { method: 'POST' });
+            await fetchJsonWithAuth(getApiUrl(`/user-alerts/${id}/read`), { method: 'POST' });
         } catch (error) {
             console.error('Failed to mark notification as read:', error);
             fetchNotifications(); // Revert on error
@@ -82,7 +82,7 @@ export const NotificationDropdown = () => {
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
 
-            await fetchJsonWithAuth(getApiUrl('/notifications/read-all'), { method: 'POST' });
+            await fetchJsonWithAuth(getApiUrl('/user-alerts/read-all'), { method: 'POST' });
         } catch (error) {
             console.error('Failed to mark all as read:', error);
             fetchNotifications();

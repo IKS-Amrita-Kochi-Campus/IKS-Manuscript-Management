@@ -176,6 +176,27 @@ export default function LoginPage() {
             {/* Right Panel - Form */}
             <div className="split-layout-right">
                 <div style={{ maxWidth: '360px', margin: '0 auto', width: '100%' }}>
+                    {/* Mobile Header - Visible only on small screens */}
+                    <div className="mobile-auth-header">
+                        <div style={{
+                            position: 'relative',
+                            width: '60px',
+                            height: '60px',
+                            margin: '0 auto 1rem',
+                        }}>
+                            <Image
+                                src="/assets/iks.webp"
+                                alt="IKS Logo"
+                                fill
+                                style={{ objectFit: 'contain' }}
+                                sizes="60px"
+                            />
+                        </div>
+                        <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', marginBottom: '0.5rem' }}>
+                            Indian Knowledge Systems
+                        </h1>
+                    </div>
+
                     <h2 style={{
                         fontSize: '1.5rem',
                         fontWeight: 600,

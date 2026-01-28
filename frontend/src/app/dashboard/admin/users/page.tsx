@@ -247,7 +247,7 @@ export default function UserManagementPage() {
                 background: 'white',
                 borderRadius: '12px',
                 border: '1px solid #e1e4e8',
-                overflow: 'hidden',
+                overflow: 'visible', // Changed from hidden to visible so dropdowns aren't clipped
                 boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
                 minHeight: '400px' // Ensure enough height for dropdowns
             }}>
@@ -270,137 +270,146 @@ export default function UserManagementPage() {
                                 </td>
                             </tr>
                         ) : users.length > 0 ? (
-                            users.map((user: any) => (
-                                <tr key={user.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s' }}>
-                                    <td style={{ padding: '1rem 1.5rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            <div style={{
-                                                width: '40px',
-                                                height: '40px',
-                                                borderRadius: '50%',
-                                                background: '#f1f5f9',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: '#64748b'
-                                            }}>
-                                                <UserIcon />
+                            users.map((user: any) => {
+                                if (!user.id) return null;
+                                return (
+                                    <tr
+                                        key={user.id}
+                                        style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s', cursor: 'pointer' }}
+                                        onClick={() => window.location.href = `/dashboard/admin/users/${user.id}`}
+                                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                        <td style={{ padding: '1rem 1.5rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{
+                                                    width: '40px',
+                                                    height: '40px',
+                                                    borderRadius: '50%',
+                                                    background: '#f1f5f9',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: '#64748b'
+                                                }}>
+                                                    <UserIcon />
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>{user.first_name} {user.last_name}</div>
+                                                    <div style={{ fontSize: '0.8125rem', color: '#64748b' }}>{user.email}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>{user.first_name} {user.last_name}</div>
-                                                <div style={{ fontSize: '0.8125rem', color: '#64748b' }}>{user.email}</div>
+                                        </td>
+                                        <td style={{ padding: '1rem 1.5rem' }}>
+                                            <span style={{
+                                                padding: '0.25rem 0.625rem',
+                                                borderRadius: '9999px',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600,
+                                                ...getRoleBadgeColor(user.role)
+                                            }}>
+                                                {user.role}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '1rem 1.5rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getStatusColor(user.is_active) }}></div>
+                                                <span style={{ fontSize: '0.875rem', color: '#334155', textTransform: 'capitalize' }}>{user.is_active ? 'Active' : 'Inactive'}</span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td style={{ padding: '1rem 1.5rem' }}>
-                                        <span style={{
-                                            padding: '0.25rem 0.625rem',
-                                            borderRadius: '9999px',
-                                            fontSize: '0.75rem',
-                                            fontWeight: 600,
-                                            ...getRoleBadgeColor(user.role)
-                                        }}>
-                                            {user.role}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '1rem 1.5rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getStatusColor(user.is_active) }}></div>
-                                            <span style={{ fontSize: '0.875rem', color: '#334155', textTransform: 'capitalize' }}>{user.is_active ? 'Active' : 'Inactive'}</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#64748b' }}>
-                                        {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never'}
-                                    </td>
-                                    <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#64748b' }}>
-                                        {new Date(user.created_at).toLocaleDateString()}
-                                    </td>
-                                    <td style={{ padding: '1rem 1.5rem', textAlign: 'right', position: 'relative' }}>
-                                        <button
-                                            onClick={(e) => handleMenuClick(e, user.id)}
-                                            style={{
-                                                background: menuOpenId === user.id ? '#f1f5f9' : 'transparent',
-                                                border: 'none',
-                                                color: '#64748b',
-                                                cursor: 'pointer',
-                                                padding: '0.5rem',
-                                                borderRadius: '0.375rem',
-                                                transition: 'background-color 0.15s'
-                                            }}>
-                                            <MoreVerticalIcon />
-                                        </button>
+                                        </td>
+                                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#64748b' }}>
+                                            {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never'}
+                                        </td>
+                                        <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#64748b' }}>
+                                            {new Date(user.created_at).toLocaleDateString()}
+                                        </td>
+                                        <td style={{ padding: '1rem 1.5rem', textAlign: 'right', position: 'relative' }}>
+                                            <button
+                                                onClick={(e) => handleMenuClick(e, user.id)}
+                                                style={{
+                                                    background: menuOpenId === user.id ? '#f1f5f9' : 'transparent',
+                                                    border: 'none',
+                                                    color: '#64748b',
+                                                    cursor: 'pointer',
+                                                    padding: '0.5rem',
+                                                    borderRadius: '0.375rem',
+                                                    transition: 'background-color 0.15s'
+                                                }}>
+                                                <MoreVerticalIcon />
+                                            </button>
 
-                                        {/* Dropdown Menu */}
-                                        {menuOpenId === user.id && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                right: '1.5rem',
-                                                top: '3rem',
-                                                background: 'white',
-                                                border: '1px solid #e2e8f0',
-                                                borderRadius: '0.5rem',
-                                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                                                zIndex: 50,
-                                                minWidth: '160px',
-                                                overflow: 'hidden'
-                                            }}>
-                                                <div style={{ padding: '0.5rem 0' }}>
-                                                    <div style={{ padding: '0.25rem 1rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>ACTIONS</div>
+                                            {/* Dropdown Menu */}
+                                            {menuOpenId === user.id && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    right: '1.5rem',
+                                                    top: '3rem',
+                                                    background: 'white',
+                                                    border: '1px solid #e2e8f0',
+                                                    borderRadius: '0.5rem',
+                                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                                                    zIndex: 50,
+                                                    minWidth: '160px',
+                                                    overflow: 'hidden'
+                                                }}>
+                                                    <div style={{ padding: '0.5rem 0' }}>
+                                                        <div style={{ padding: '0.25rem 1rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>ACTIONS</div>
 
-                                                    {/* Toggle Status */}
-                                                    <button
-                                                        onClick={() => handleStatusUpdate(user.id, user.is_active)}
-                                                        disabled={actionLoading === user.id}
-                                                        style={{
-                                                            width: '100%',
-                                                            textAlign: 'left',
-                                                            padding: '0.5rem 1rem',
-                                                            background: 'white',
-                                                            border: 'none',
-                                                            fontSize: '0.875rem',
-                                                            color: user.is_active ? '#dc2626' : '#16a34a',
-                                                            cursor: 'pointer',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '0.5rem'
-                                                        }}
-                                                        onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
-                                                        onMouseOut={(e) => e.currentTarget.style.background = 'white'}
-                                                    >
-                                                        {user.is_active ? 'Deactivate User' : 'Activate User'}
-                                                    </button>
-
-                                                    <div style={{ borderTop: '1px solid #f1f5f9', margin: '0.5rem 0' }}></div>
-                                                    <div style={{ padding: '0.25rem 1rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>CHANGE ROLE</div>
-
-                                                    {['ADMIN', 'REVIEWER', 'OWNER', 'USER', 'VISITOR'].map(role => (
+                                                        {/* Toggle Status */}
                                                         <button
-                                                            key={role}
-                                                            onClick={() => handleRoleUpdate(user.id, role)}
-                                                            disabled={user.role === role}
+                                                            onClick={() => handleStatusUpdate(user.id, user.is_active)}
+                                                            disabled={actionLoading === user.id}
                                                             style={{
                                                                 width: '100%',
                                                                 textAlign: 'left',
                                                                 padding: '0.5rem 1rem',
-                                                                background: user.role === role ? '#f0f9ff' : 'white',
+                                                                background: 'white',
                                                                 border: 'none',
                                                                 fontSize: '0.875rem',
-                                                                color: user.role === role ? '#0ea5e9' : '#334155',
-                                                                cursor: user.role === role ? 'default' : 'pointer',
-                                                                fontWeight: user.role === role ? 500 : 400
+                                                                color: user.is_active ? '#dc2626' : '#16a34a',
+                                                                cursor: 'pointer',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '0.5rem'
                                                             }}
-                                                            onMouseOver={(e) => user.role !== role && (e.currentTarget.style.background = '#f8fafc')}
-                                                            onMouseOut={(e) => user.role !== role && (e.currentTarget.style.background = 'white')}
+                                                            onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                                            onMouseOut={(e) => e.currentTarget.style.background = 'white'}
                                                         >
-                                                            Mark as {role.charAt(0) + role.slice(1).toLowerCase()}
+                                                            {user.is_active ? 'Deactivate User' : 'Activate User'}
                                                         </button>
-                                                    ))}
+
+                                                        <div style={{ borderTop: '1px solid #f1f5f9', margin: '0.5rem 0' }}></div>
+                                                        <div style={{ padding: '0.25rem 1rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>CHANGE ROLE</div>
+
+                                                        {['ADMIN', 'REVIEWER', 'OWNER', 'USER', 'VISITOR'].map(role => (
+                                                            <button
+                                                                key={role}
+                                                                onClick={() => handleRoleUpdate(user.id, role)}
+                                                                disabled={user.role === role}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    textAlign: 'left',
+                                                                    padding: '0.5rem 1rem',
+                                                                    background: user.role === role ? '#f0f9ff' : 'white',
+                                                                    border: 'none',
+                                                                    fontSize: '0.875rem',
+                                                                    color: user.role === role ? '#0ea5e9' : '#334155',
+                                                                    cursor: user.role === role ? 'default' : 'pointer',
+                                                                    fontWeight: user.role === role ? 500 : 400
+                                                                }}
+                                                                onMouseOver={(e) => user.role !== role && (e.currentTarget.style.background = '#f8fafc')}
+                                                                onMouseOut={(e) => user.role !== role && (e.currentTarget.style.background = 'white')}
+                                                            >
+                                                                Mark as {role.charAt(0) + role.slice(1).toLowerCase()}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })
                         ) : (
                             <tr>
                                 <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
@@ -411,6 +420,42 @@ export default function UserManagementPage() {
                     </tbody>
                 </table>
             </div>
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+                    <button
+                        onClick={() => fetchUsers(pagination.page - 1)}
+                        disabled={pagination.page === 1}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '0.375rem',
+                            background: 'white',
+                            color: pagination.page === 1 ? '#94a3b8' : '#0f172a',
+                            cursor: pagination.page === 1 ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        Previous
+                    </button>
+                    <span style={{ display: 'flex', alignItems: 'center', padding: '0 1rem', fontSize: '0.875rem', color: '#64748b' }}>
+                        Page {pagination.page} of {pagination.totalPages}
+                    </span>
+                    <button
+                        onClick={() => fetchUsers(pagination.page + 1)}
+                        disabled={pagination.page === pagination.totalPages}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '0.375rem',
+                            background: 'white',
+                            color: pagination.page === pagination.totalPages ? '#94a3b8' : '#0f172a',
+                            cursor: pagination.page === pagination.totalPages ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
