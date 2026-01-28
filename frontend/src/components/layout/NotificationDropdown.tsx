@@ -42,7 +42,11 @@ export const NotificationDropdown = () => {
                 setUnreadCount(response.unreadCount);
             }
         } catch (error) {
-            console.error('Failed to fetch notifications:', error);
+            // Auth errors are handled by the API client with redirects
+            // Only log non-auth errors in development
+            if (process.env.NODE_ENV === 'development') {
+                console.debug('Notification fetch skipped (likely auth issue)');
+            }
         }
     };
 

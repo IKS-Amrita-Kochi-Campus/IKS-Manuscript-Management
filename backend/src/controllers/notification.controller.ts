@@ -3,7 +3,7 @@ import { getNotificationModel } from '../models/mongo/Notification.model.js';
 
 export const getNotifications = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         if (!userId) {
             return res.status(401).json({ success: false, error: 'Unauthorized' });
         }
@@ -24,7 +24,7 @@ export const getNotifications = async (req: Request, res: Response) => {
 
 export const markAsRead = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         const { id } = req.params;
 
         if (!userId) {
@@ -46,7 +46,7 @@ export const markAsRead = async (req: Request, res: Response) => {
 
 export const markAllAsRead = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         if (!userId) {
             return res.status(401).json({ success: false, error: 'Unauthorized' });
         }

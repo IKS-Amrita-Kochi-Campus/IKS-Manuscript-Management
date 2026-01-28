@@ -72,6 +72,7 @@ interface Manuscript {
     doi?: string;
     viewCount?: number;
     ownerId: string;
+    isHidden?: boolean;
     files?: Array<{
         name: string;
         mimeType: string;
@@ -360,6 +361,82 @@ export default function ManuscriptDetailPage() {
         }
     };
 
+    const handleHideManuscript = async () => {
+        if (!confirm('Are you sure you want to hide this manuscript? It will only be visible to you and administrators.')) {
+            return;
+        }
+
+        try {
+            setError('');
+            const response = await fetchJsonWithAuth<{ success: boolean; manuscript?: Manuscript; error?: string }>(
+                getApiUrl(`/manuscripts/${id}/hide`),
+                { method: 'POST' }
+            );
+
+            if (response.success) {
+                setManuscript(prev => prev ? ({ ...prev, isHidden: true }) : null);
+                setSuccess('Manuscript hidden successfully');
+            } else {
+                setError(response.error || 'Failed to hide manuscript');
+            }
+        } catch (err: any) {
+            console.error('Hide manuscript error:', err);
+            setError(err.message || 'Failed to hide manuscript');
+        }
+    };
+
+    const handleUnhideManuscript = async () => {
+        try {
+            setError('');
+            const response = await fetchJsonWithAuth<{ success: boolean; manuscript?: Manuscript; error?: string }>(
+                getApiUrl(`/manuscripts/${id}/unhide`),
+                { method: 'POST' }
+            );
+
+            if (response.success) {
+                setManuscript(prev => prev ? ({ ...prev, isHidden: false }) : null);
+                setSuccess('Manuscript is now visible');
+            } else {
+                setError(response.error || 'Failed to unhide manuscript');
+            }
+        } catch (err: any) {
+            console.error('Unhide manuscript error:', err);
+            setError(err.message || 'Failed to unhide manuscript');
+        }
+    };
+
+    const handlePermanentDelete = async () => {
+        const confirmText = 'DELETE';
+        const userInput = prompt(`This action is IRREVERSIBLE. All files and data will be permanently lost.\n\nType "${confirmText}" to confirm permanent deletion:`);
+
+        if (userInput !== confirmText) {
+            if (userInput !== null) {
+                setError('Deletion cancelled. Text did not match.');
+            }
+            return;
+        }
+
+        try {
+            setError('');
+            const response = await fetchJsonWithAuth<{ success: boolean; error?: string }>(
+                getApiUrl(`/manuscripts/${id}/permanent`),
+                { method: 'DELETE' }
+            );
+
+            if (response.success) {
+                setSuccess('Manuscript permanently deleted. Redirecting...');
+                setTimeout(() => {
+                    router.push('/dashboard/manuscripts');
+                }, 2000);
+            } else {
+                setError(response.error || 'Failed to delete manuscript');
+            }
+        } catch (err: any) {
+            console.error('Permanent delete error:', err);
+            setError(err.message || 'Failed to delete manuscript');
+        }
+    };
+
     if (loading) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh' }}>
@@ -516,6 +593,25 @@ export default function ManuscriptDetailPage() {
                         }}>
                             {manuscript.visibility.toUpperCase()}
                         </span>
+                        {manuscript.isHidden && (
+                            <span style={{
+                                padding: '0.375rem 0.75rem',
+                                background: '#fef3c7',
+                                color: '#b45309',
+                                borderRadius: '999px',
+                                fontSize: '0.8125rem',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem'
+                            }}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                    <line x1="1" y1="1" x2="23" y2="23" />
+                                </svg>
+                                HIDDEN
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -772,6 +868,133 @@ export default function ManuscriptDetailPage() {
                         </div>
                     </div>
 
+                    {/* Owner Actions */}
+                    {isOwner && (
+                        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                            <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>Manage Manuscript</h4>
+
+                            {/* Hidden Status */}
+                            {manuscript.isHidden && (
+                                <div style={{
+                                    padding: '0.75rem',
+                                    background: '#fef3c7',
+                                    borderRadius: '8px',
+                                    marginBottom: '1rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    fontSize: '0.8125rem',
+                                    color: '#92400e'
+                                }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                        <line x1="1" y1="1" x2="23" y2="23" />
+                                    </svg>
+                                    This manuscript is hidden from public view
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {/* Hide/Unhide Toggle */}
+                                {manuscript.isHidden ? (
+                                    <button
+                                        onClick={handleUnhideManuscript}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.5rem',
+                                            padding: '0.75rem',
+                                            background: '#ecfdf5',
+                                            color: '#059669',
+                                            border: '1px solid #a7f3d0',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s'
+                                        }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                        Make Visible
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleHideManuscript}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.5rem',
+                                            padding: '0.75rem',
+                                            background: '#fef3c7',
+                                            color: '#b45309',
+                                            border: '1px solid #fde68a',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s'
+                                        }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                            <line x1="1" y1="1" x2="23" y2="23" />
+                                        </svg>
+                                        Hide from Public
+                                    </button>
+                                )}
+
+                                {/* Danger Zone Divider */}
+                                <div style={{
+                                    borderTop: '1px solid #fecaca',
+                                    marginTop: '0.5rem',
+                                    paddingTop: '0.75rem'
+                                }}>
+                                    <div style={{
+                                        fontSize: '0.6875rem',
+                                        fontWeight: 600,
+                                        color: '#dc2626',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        marginBottom: '0.75rem'
+                                    }}>
+                                        Danger Zone
+                                    </div>
+                                    <button
+                                        onClick={handlePermanentDelete}
+                                        style={{
+                                            width: '100%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.5rem',
+                                            padding: '0.75rem',
+                                            background: '#fef2f2',
+                                            color: '#dc2626',
+                                            border: '1px solid #fecaca',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s'
+                                        }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <polyline points="3 6 5 6 21 6" />
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                            <line x1="10" y1="11" x2="10" y2="17" />
+                                            <line x1="14" y1="11" x2="14" y2="17" />
+                                        </svg>
+                                        Permanently Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                 </div>
             </div>

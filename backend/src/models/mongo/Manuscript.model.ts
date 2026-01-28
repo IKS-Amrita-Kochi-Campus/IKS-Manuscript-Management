@@ -101,6 +101,11 @@ export interface IManuscript {
     deletedAt?: Date;
     deletedBy?: string;
 
+    // Hidden (visible to owner but not public)
+    isHidden?: boolean;
+    hiddenAt?: Date;
+    hiddenBy?: string;
+
     // Timestamps
     createdAt: Date;
     updatedAt: Date;
@@ -190,6 +195,9 @@ const ManuscriptSchema = new Schema<IManuscript>(
         tags: [{ type: String, index: true }],
         deletedAt: { type: Date },
         deletedBy: { type: String },
+        isHidden: { type: Boolean, default: false, index: true },
+        hiddenAt: { type: Date },
+        hiddenBy: { type: String },
     },
     {
         timestamps: true,

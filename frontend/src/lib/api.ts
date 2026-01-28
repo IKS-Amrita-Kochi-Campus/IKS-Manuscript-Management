@@ -103,6 +103,7 @@ async function refreshAccessToken(): Promise<boolean> {
     const refreshToken = getRefreshToken();
 
     if (!refreshToken) {
+        logger.warn('No refresh token available for refresh');
         return false;
     }
 
@@ -112,16 +113,20 @@ async function refreshAccessToken(): Promise<boolean> {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ refreshToken }),
         });
 
         const data: TokenResponse = await response.json();
 
         if (data.success && data.tokens) {
+            // Store new tokens
             setTokens(data.tokens.accessToken, data.tokens.refreshToken);
+            logger.info('Token refresh successful');
             return true;
         }
 
+        logger.warn('Token refresh returned unsuccessful', data.error);
         return false;
     } catch (error) {
         logger.error('Token refresh failed:', error);
@@ -200,9 +205,15 @@ export async function fetchWithAuth(
         if (refreshed) {
             // Retry the request with the new token
             const newToken = getAccessToken();
+            if (!newToken) {
+                // This shouldn't happen, but handle it gracefully
+                clearAuthAndRedirect('Authentication error. Please sign in again.');
+                throw new Error('No token after refresh');
+            }
+
             response = await fetch(url, {
                 ...options,
-                credentials: 'include', // Required for cross-origin cookies
+                credentials: 'include',
                 headers: {
                     'Authorization': `Bearer ${newToken}`,
                     'Content-Type': 'application/json',
@@ -210,6 +221,13 @@ export async function fetchWithAuth(
                     ...options.headers,
                 },
             });
+
+            // If STILL 401 after refresh, the session is truly broken
+            if (response.status === 401) {
+                logger.warn('Still unauthorized after token refresh - session invalid');
+                clearAuthAndRedirect('Your session is no longer valid. Please sign in again.');
+                throw new Error('Session invalid');
+            }
         } else {
             // Refresh failed, redirect to login
             clearAuthAndRedirect('Your session has expired. Please sign in again.');

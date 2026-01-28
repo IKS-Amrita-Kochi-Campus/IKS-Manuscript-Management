@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { API_BASE_URL } from '@/lib/api';
-import TurnstileWidget from '@/components/auth/TurnstileWidget';
 
 interface University {
     name: string;
@@ -45,8 +44,6 @@ const LoadingSpinner = () => (
     </svg>
 );
 
-// Local definition removed, using import from @/lib/api
-
 export default function RegisterPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
@@ -61,8 +58,6 @@ export default function RegisterPage() {
     const [email, setEmail] = useState('');
     const [institution, setInstitution] = useState('No Organisation');
     const [password, setPassword] = useState('');
-    const [turnstileToken, setTurnstileToken] = useState('');
-    const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAA2pX7sX7sX7sX7s'; // Test key if not provided
 
     // University Search State
     const [suggestions, setSuggestions] = useState<University[]>([]);
@@ -590,24 +585,6 @@ export default function RegisterPage() {
                                 </Link>
                             </label>
                         </div>
-
-                        <TurnstileWidget
-                            siteKey={TURNSTILE_SITE_KEY}
-                            onVerify={(token) => {
-                                setTurnstileToken(token);
-                                setError(''); // Clear error on success
-                            }}
-                            onError={(err) => {
-                                console.error('Turnstile Error:', err);
-                                setTurnstileToken('');
-                                // Don't show error to user immediately, let them retry or let the form submission handle missing token
-                            }}
-                            onExpire={() => {
-                                setTurnstileToken('');
-                                setError('Security verification expired. Please verify again.');
-                            }}
-                            action="register"
-                        />
 
                         <button
                             type="submit"

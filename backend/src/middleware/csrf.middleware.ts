@@ -50,12 +50,14 @@ export const validateCsrfToken = (req: Request, res: Response, next: NextFunctio
         '/api/auth/forgot-password',
         '/api/auth/reset-password',
         '/api/auth/verify-email',
+        '/api/logs', // Frontend logging - needs to work before auth
         '/auth/login',
         '/auth/register',
         '/auth/refresh',
         '/auth/forgot-password',
         '/auth/reset-password',
         '/auth/verify-email',
+        '/logs', // Frontend logging without /api prefix
     ];
 
     if (exemptPaths.some(path => req.path.includes(path) || req.originalUrl.includes(path))) {

@@ -23,7 +23,9 @@ router.post('/', authenticate, validateBody(manuscriptSchema), manuscriptControl
 router.put('/:id', authenticate, manuscriptController.update);
 router.post('/:id/doi', authenticate, manuscriptController.assignDoi); // New route
 router.delete('/:id', authenticate, manuscriptController.remove);
-
+router.delete('/:id/permanent', authenticate, manuscriptController.permanentDelete);
+router.post('/:id/hide', authenticate, manuscriptController.hide);
+router.post('/:id/unhide', authenticate, manuscriptController.unhide);
 
 // File management
 router.post('/:id/files', authenticate, uploadLimiter, manuscriptUpload.array('files', 10), manuscriptController.uploadFiles);

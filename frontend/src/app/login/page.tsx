@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { API_BASE_URL } from '@/lib/api';
-import TurnstileWidget from '@/components/auth/TurnstileWidget';
 
 // Icon Components
 const EyeIcon = () => (
@@ -30,8 +29,6 @@ const LoadingSpinner = () => (
     </svg>
 );
 
-// Local definition removed, using import from @/lib/api
-
 export default function LoginPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
@@ -40,8 +37,6 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [info, setInfo] = useState('');
     const [loading, setLoading] = useState(false);
-    const [turnstileToken, setTurnstileToken] = useState('');
-    const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAA2pX7sX7sX7sX7s'; // Test key
 
     // Check for session expired message on mount
     useEffect(() => {
@@ -56,14 +51,6 @@ export default function LoginPage() {
         e.preventDefault();
         setError('');
         setLoading(true);
-
-        // Optional: Client-side check if you want to enforce it strictly before sending
-        // Note: Real validation happens on backend
-        if (!turnstileToken) {
-            // For test purposes with test keys, interaction might be optional or auto
-            // But for production, you should ideally wait for it.
-            // We'll proceed sending what we have, backend will validate if configured.
-        }
 
         try {
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -333,12 +320,6 @@ export default function LoginPage() {
                                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                                 </button>
                             </div>
-
-                            <TurnstileWidget
-                                siteKey={TURNSTILE_SITE_KEY}
-                                onVerify={setTurnstileToken}
-                                action="login"
-                            />
                         </div>
 
                         <button

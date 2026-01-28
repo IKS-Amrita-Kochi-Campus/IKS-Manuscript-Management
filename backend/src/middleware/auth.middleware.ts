@@ -38,6 +38,7 @@ export async function authenticate(
     try {
         const decoded = verifyAccessToken(token);
         if (!decoded) {
+            console.error('Auth Middleware: Token verification failed (decoded is null)');
             res.status(401).json({
                 success: false,
                 error: 'Invalid or expired token',
@@ -50,6 +51,7 @@ export async function authenticate(
         const session = await sessionRepo.findValidByUserId(decoded.userId);
 
         if (!session) {
+            console.error(`Auth Middleware: No valid session found for user ${decoded.userId}`);
             res.status(401).json({
                 success: false,
                 error: 'Session expired or invalidated',
@@ -61,6 +63,7 @@ export async function authenticate(
         // Check if user is still active
         const user = await userRepo.findById(decoded.userId);
         if (!user || !user.is_active) {
+            console.error(`Auth Middleware: User ${decoded.userId} not found or inactive`);
             res.status(401).json({
                 success: false,
                 error: 'Account inactive or not found',

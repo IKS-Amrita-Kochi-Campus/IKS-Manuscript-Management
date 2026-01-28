@@ -268,7 +268,7 @@ export const userRepo = {
 
 export const sessionRepo = {
     async create(data: Partial<Session>): Promise<Session> {
-        const id = uuidv4();
+        const id = data.id || uuidv4();
         const result = await getPool().query(
             `INSERT INTO sessions (id, user_id, refresh_token, ip_address, user_agent, expires_at)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,

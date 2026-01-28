@@ -171,19 +171,25 @@ export async function login(
         await sessionRepo.invalidateOldestForUser(user.id);
     }
 
-    // Generate tokens
+    // Generate Session ID explicitly
+    const sessionId = uuidv4();
+
+    // Generate tokens with sessionId
     const accessToken = generateAccessToken({
         userId: user.id,
         email: user.email,
         role: user.role,
+        sessionId: sessionId,
     });
 
     const refreshToken = generateRefreshToken({
         userId: user.id,
+        sessionId: sessionId,
     });
 
     // Create session
     await sessionRepo.create({
+        id: sessionId,
         user_id: user.id,
         refresh_token: refreshToken,
         ip_address: ipAddress,
@@ -261,10 +267,12 @@ export async function refreshToken(
         userId: user.id,
         email: user.email,
         role: user.role,
+        sessionId: session.id,
     });
 
     const newRefreshToken = generateRefreshToken({
         userId: user.id,
+        sessionId: session.id,
     });
 
     // Update session with new refresh token

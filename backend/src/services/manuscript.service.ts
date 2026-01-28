@@ -186,6 +186,150 @@ export async function deleteManuscript(
 }
 
 /**
+ * Permanently delete manuscript (hard delete)
+ * Removes the manuscript and all files from storage forever
+ */
+export async function permanentDeleteManuscript(
+    id: string,
+    userId: string
+): Promise<ManuscriptResult> {
+    const Manuscript = getManuscriptModel();
+
+    const manuscript = await Manuscript.findById(id);
+
+    if (!manuscript) {
+        return {
+            success: false,
+            error: 'Manuscript not found',
+            code: 'NOT_FOUND',
+        };
+    }
+
+    // Check ownership - only owner or admin can permanently delete
+    const user = await userRepo.findById(userId);
+    if (manuscript.ownerId !== userId && user?.role !== 'ADMIN') {
+        return {
+            success: false,
+            error: 'You do not have permission to permanently delete this manuscript',
+            code: 'FORBIDDEN',
+        };
+    }
+
+    // Delete all files from storage
+    for (const file of manuscript.files) {
+        try {
+            await deleteFromStorage(file.encryptedPath);
+        } catch (error) {
+            console.error(`Failed to delete file ${file.encryptedPath}:`, error);
+            // Continue deleting other files even if one fails
+        }
+    }
+
+    // Permanently delete the manuscript document
+    await Manuscript.deleteOne({ _id: id });
+
+    return { success: true };
+}
+
+/**
+ * Hide manuscript (visible only to owner)
+ */
+export async function hideManuscript(
+    id: string,
+    userId: string
+): Promise<ManuscriptResult> {
+    const Manuscript = getManuscriptModel();
+
+    const manuscript = await Manuscript.findById(id);
+
+    if (!manuscript || manuscript.deletedAt) {
+        return {
+            success: false,
+            error: 'Manuscript not found',
+            code: 'NOT_FOUND',
+        };
+    }
+
+    // Check ownership
+    const user = await userRepo.findById(userId);
+    if (manuscript.ownerId !== userId && user?.role !== 'ADMIN') {
+        return {
+            success: false,
+            error: 'You do not have permission to hide this manuscript',
+            code: 'FORBIDDEN',
+        };
+    }
+
+    if (manuscript.isHidden) {
+        return {
+            success: false,
+            error: 'Manuscript is already hidden',
+            code: 'ALREADY_HIDDEN',
+        };
+    }
+
+    const updated = await Manuscript.findByIdAndUpdate(
+        id,
+        { isHidden: true, hiddenAt: new Date(), hiddenBy: userId },
+        { new: true }
+    );
+
+    return {
+        success: true,
+        manuscript: updated?.toObject() as IManuscript,
+    };
+}
+
+/**
+ * Unhide manuscript (make visible again)
+ */
+export async function unhideManuscript(
+    id: string,
+    userId: string
+): Promise<ManuscriptResult> {
+    const Manuscript = getManuscriptModel();
+
+    const manuscript = await Manuscript.findById(id);
+
+    if (!manuscript || manuscript.deletedAt) {
+        return {
+            success: false,
+            error: 'Manuscript not found',
+            code: 'NOT_FOUND',
+        };
+    }
+
+    // Check ownership
+    const user = await userRepo.findById(userId);
+    if (manuscript.ownerId !== userId && user?.role !== 'ADMIN') {
+        return {
+            success: false,
+            error: 'You do not have permission to unhide this manuscript',
+            code: 'FORBIDDEN',
+        };
+    }
+
+    if (!manuscript.isHidden) {
+        return {
+            success: false,
+            error: 'Manuscript is not hidden',
+            code: 'NOT_HIDDEN',
+        };
+    }
+
+    const updated = await Manuscript.findByIdAndUpdate(
+        id,
+        { isHidden: false, hiddenAt: undefined, hiddenBy: undefined },
+        { new: true }
+    );
+
+    return {
+        success: true,
+        manuscript: updated?.toObject() as IManuscript,
+    };
+}
+
+/**
  * Upload manuscript file
  */
 export async function uploadManuscriptFile(
@@ -449,6 +593,7 @@ export async function searchManuscripts(
 
     const query: Record<string, unknown> = {
         deletedAt: { $exists: false },
+        isHidden: { $ne: true }, // Exclude hidden manuscripts from public search
         status: 'published',
     };
 

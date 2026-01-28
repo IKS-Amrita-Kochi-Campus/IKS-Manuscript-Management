@@ -177,6 +177,99 @@ export async function remove(req: Request, res: Response): Promise<void> {
 }
 
 /**
+ * Permanently delete manuscript (hard delete - cannot be undone)
+ */
+export async function permanentDelete(req: Request, res: Response): Promise<void> {
+    if (!req.user) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+    }
+
+    const { id } = req.params;
+    const result = await manuscriptService.permanentDeleteManuscript(id, req.user.userId);
+
+    if (!result.success) {
+        const status =
+            result.code === 'NOT_FOUND' ? 404 : result.code === 'FORBIDDEN' ? 403 : 400;
+        res.status(status).json({
+            success: false,
+            error: result.error,
+            code: result.code,
+        });
+        return;
+    }
+
+    res.json({
+        success: true,
+        message: 'Manuscript permanently deleted',
+    });
+}
+
+/**
+ * Hide manuscript (visible only to owner)
+ */
+export async function hide(req: Request, res: Response): Promise<void> {
+    if (!req.user) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+    }
+
+    const { id } = req.params;
+    const result = await manuscriptService.hideManuscript(id, req.user.userId);
+
+    if (!result.success) {
+        const status =
+            result.code === 'NOT_FOUND' ? 404 :
+                result.code === 'FORBIDDEN' ? 403 :
+                    result.code === 'ALREADY_HIDDEN' ? 400 : 400;
+        res.status(status).json({
+            success: false,
+            error: result.error,
+            code: result.code,
+        });
+        return;
+    }
+
+    res.json({
+        success: true,
+        message: 'Manuscript is now hidden',
+        manuscript: result.manuscript,
+    });
+}
+
+/**
+ * Unhide manuscript (make visible again)
+ */
+export async function unhide(req: Request, res: Response): Promise<void> {
+    if (!req.user) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+    }
+
+    const { id } = req.params;
+    const result = await manuscriptService.unhideManuscript(id, req.user.userId);
+
+    if (!result.success) {
+        const status =
+            result.code === 'NOT_FOUND' ? 404 :
+                result.code === 'FORBIDDEN' ? 403 :
+                    result.code === 'NOT_HIDDEN' ? 400 : 400;
+        res.status(status).json({
+            success: false,
+            error: result.error,
+            code: result.code,
+        });
+        return;
+    }
+
+    res.json({
+        success: true,
+        message: 'Manuscript is now visible',
+        manuscript: result.manuscript,
+    });
+}
+
+/**
  * Upload files to manuscript
  */
 export async function uploadFiles(req: Request, res: Response): Promise<void> {
