@@ -305,7 +305,7 @@ export default function Home() {
         borderBottom: '1px solid #e5e7eb',
       }}>
         <div className="container">
-          <div className="stats-grid">
+          <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
             <StatsCard
               value={loading ? '...' : stats.manuscriptsCount.toLocaleString()}
               label="Manuscripts Archived"
@@ -320,11 +320,6 @@ export default function Home() {
               value={loading ? '...' : stats.languagesCount.toString()}
               label="Languages Represented"
               icon={<GlobeIcon />}
-            />
-            <StatsCard
-              value="99.9%"
-              label="Uptime Guarantee"
-              icon={<ShieldIcon />}
             />
           </div>
         </div>
@@ -411,7 +406,7 @@ export default function Home() {
               <ChevronRightIcon />
             </Link>
             <Link href="/contact" className="btn btn-ghost btn-lg" style={{ color: '#059669' }}>
-              Contact Sales
+              Contact Support
             </Link>
           </div>
         </div>

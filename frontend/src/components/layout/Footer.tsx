@@ -86,21 +86,6 @@ export const Footer: React.FC = () => {
 
                     <div>
                         <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>
-                            Resources
-                        </h4>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                            {['Documentation', 'Research Guides', 'Community', 'Support'].map((item) => (
-                                <li key={item} style={{ marginBottom: '0.5rem' }}>
-                                    <Link href="#" style={{ fontSize: '0.875rem', color: '#64748b', textDecoration: 'none' }}>
-                                        {item}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>
                             Legal
                         </h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -126,6 +111,30 @@ export const Footer: React.FC = () => {
                             </li>
                         </ul>
                     </div>
+
+                    <div>
+                        <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>
+                            Contact
+                        </h4>
+                        <div style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.6' }}>
+                            <p style={{ margin: '0 0 1rem 0' }}>
+                                Amrita Vishwa Vidhyapeetham,<br />
+                                Kochi campus, Brahmasthanam,<br />
+                                Edapally North P.O, Kochi,<br />
+                                Kerala, 682024
+                            </p>
+                            <p style={{ margin: '0 0 0.5rem 0' }}>
+                                <a href="mailto:ikskochi@kh.amrita.edu" style={{ color: '#059669', textDecoration: 'none' }}>
+                                    ikskochi@kh.amrita.edu
+                                </a>
+                            </p>
+                            <p style={{ margin: 0 }}>
+                                <a href="tel:0484-7102899" style={{ color: '#64748b', textDecoration: 'none' }}>
+                                    0484-7102899
+                                </a>
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="footer-bottom">
@@ -133,11 +142,8 @@ export const Footer: React.FC = () => {
                         © {currentYear} Indian Knowledge Systems. All rights reserved.
                     </p>
                     <div style={{ display: 'flex', gap: '1.5rem' }}>
-                        <Link href="#" style={{ fontSize: '0.875rem', color: '#64748b', textDecoration: 'none' }}>
-                            GitHub
-                        </Link>
-                        <Link href="#" style={{ fontSize: '0.875rem', color: '#64748b', textDecoration: 'none' }}>
-                            Twitter
+                        <Link href="https://ikskochi.amrita.edu" target="_blank" style={{ fontSize: '0.875rem', color: '#64748b', textDecoration: 'none' }}>
+                            www.ikskochi.amrita.edu
                         </Link>
                     </div>
                 </div>

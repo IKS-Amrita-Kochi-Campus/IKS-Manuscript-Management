@@ -32,7 +32,6 @@ export const Header: React.FC = () => {
     const navItems = [
         { href: '/manuscripts', label: 'Manuscripts' },
         { href: '/about', label: 'About' },
-        { href: '/researchers', label: 'Researchers' },
     ];
 
     const MenuIcon = () => (
