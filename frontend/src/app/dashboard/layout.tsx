@@ -242,6 +242,20 @@ export default function DashboardLayout({
     const router = useRouter();
     const [user, setUser] = useState<{ firstName: string; lastName: string; role: UserRole; email: string } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Close sidebar on route change
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [pathname]);
+
+    const MenuIcon = () => (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+    );
 
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -329,25 +343,19 @@ export default function DashboardLayout({
     return (
         <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
             {/* Header */}
-            <header style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '64px',
-                background: 'white',
-                borderBottom: '1px solid #e5e7eb',
-                zIndex: 100,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 1.5rem',
-            }}>
+            <header className="dashboard-header">
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.75rem',
                 }}>
+                    <button
+                        className="dashboard-menu-btn"
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        aria-label="Toggle menu"
+                    >
+                        <MenuIcon />
+                    </button>
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
                         <div style={{
                             position: 'relative',
@@ -443,20 +451,14 @@ export default function DashboardLayout({
                 </div>
             </header>
 
+            {/* Sidebar Overlay */}
+            <div
+                className={`dashboard-overlay ${isSidebarOpen ? 'open' : ''}`}
+                onClick={() => setIsSidebarOpen(false)}
+            />
+
             {/* Sidebar */}
-            <aside style={{
-                position: 'fixed',
-                left: 0,
-                top: '64px',
-                bottom: 0,
-                width: '260px',
-                background: 'white',
-                borderRight: '1px solid #e5e7eb',
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '1rem',
-                overflowY: 'auto',
-            }}>
+            <aside className={`dashboard-sidebar ${isSidebarOpen ? 'open' : ''}`}>
                 {/* Role Badge removed as requested */}
 
                 {/* Navigation Sections */}
@@ -531,16 +533,8 @@ export default function DashboardLayout({
             </aside>
 
             {/* Main Content */}
-            <main style={{
-                marginLeft: '260px',
-                paddingTop: '64px',
-                minHeight: '100vh',
-            }}>
-                <div style={{
-                    maxWidth: '1200px',
-                    margin: '0 auto',
-                    padding: '2rem',
-                }}>
+            <main className="dashboard-main">
+                <div className="dashboard-container">
                     {children}
                 </div>
             </main>

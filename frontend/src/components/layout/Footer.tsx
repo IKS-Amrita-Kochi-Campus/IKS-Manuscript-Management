@@ -13,16 +13,8 @@ export const Footer: React.FC = () => {
             borderTop: '1px solid #e5e7eb',
             padding: '3rem 0',
         }}>
-            <div style={{
-                maxWidth: '1200px',
-                margin: '0 auto',
-                padding: '0 2rem',
-            }}>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: '2rem',
-                }}>
+            <div className="container">
+                <div className="footer-grid">
                     <div>
                         <div style={{
                             display: 'flex',
@@ -136,14 +128,7 @@ export const Footer: React.FC = () => {
                     </div>
                 </div>
 
-                <div style={{
-                    marginTop: '2rem',
-                    paddingTop: '2rem',
-                    borderTop: '1px solid #e5e7eb',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}>
+                <div className="footer-bottom">
                     <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
                         © {currentYear} Indian Knowledge Systems. All rights reserved.
                     </p>

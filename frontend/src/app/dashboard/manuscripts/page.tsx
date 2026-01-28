@@ -353,11 +353,7 @@ export default function ManuscriptsPage() {
             )}
 
             {/* Search and Filters */}
-            <div style={{
-                display: 'flex',
-                gap: '1rem',
-                marginBottom: '1.5rem',
-            }}>
+            <div className="search-filter-bar">
                 <form onSubmit={handleSearch} style={{ flex: 1, position: 'relative' }}>
                     <div style={{
                         position: 'absolute',
@@ -440,21 +436,13 @@ export default function ManuscriptsPage() {
 
             {/* Manuscripts Grid */}
             {loading ? (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: viewMode === 'grid' ? 'repeat(3, 1fr)' : '1fr',
-                    gap: '1.5rem',
-                }}>
+                <div className={viewMode === 'grid' ? "manuscripts-grid" : "manuscripts-list"}>
                     {[1, 2, 3, 4, 5, 6].map(i => (
                         <LoadingSkeleton key={i} />
                     ))}
                 </div>
             ) : manuscripts.length > 0 ? (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: viewMode === 'grid' ? 'repeat(3, 1fr)' : '1fr',
-                    gap: '1.5rem',
-                }}>
+                <div className={viewMode === 'grid' ? "manuscripts-grid" : "manuscripts-list"}>
                     {manuscripts.map((manuscript) => (
                         <ManuscriptCard key={manuscript._id} manuscript={manuscript} />
                     ))}

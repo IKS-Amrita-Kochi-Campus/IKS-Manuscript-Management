@@ -164,22 +164,9 @@ export default function RegisterPage() {
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            background: '#f8fafc',
-        }}>
+        <div className="split-layout-container">
             {/* Left Panel - Branding */}
-            <div style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: '3rem',
-                background: '#f8fafc',
-                borderRight: '1px solid #e5e7eb',
-            }}>
+            <div className="split-layout-left">
                 <div style={{ maxWidth: '400px', textAlign: 'center' }}>
                     <div style={{
                         position: 'relative',
@@ -286,15 +273,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Right Panel - Form */}
-            <div style={{
-                width: '540px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                padding: '3rem',
-                background: 'white',
-                overflowY: 'auto',
-            }}>
+            <div className="split-layout-right">
                 <div style={{ maxWidth: '360px', margin: '0 auto', width: '100%' }}>
                     <h2 style={{
                         fontSize: '1.5rem',
@@ -341,12 +320,7 @@ export default function RegisterPage() {
                     )}
 
                     <form onSubmit={handleSubmit}>
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: '1rem',
-                            marginBottom: '1.25rem',
-                        }}>
+                        <div className="form-grid-2">
                             <div>
                                 <label style={{
                                     display: 'block',

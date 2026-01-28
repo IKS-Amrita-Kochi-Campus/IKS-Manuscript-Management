@@ -103,22 +103,9 @@ export default function LoginPage() {
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            background: '#f8fafc',
-        }}>
+        <div className="split-layout-container">
             {/* Left Panel - Branding */}
-            <div style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: '3rem',
-                background: '#f8fafc',
-                borderRight: '1px solid #e5e7eb',
-            }}>
+            <div className="split-layout-left">
                 <div style={{ maxWidth: '400px', textAlign: 'center' }}>
                     <div style={{
                         position: 'relative',
@@ -187,14 +174,7 @@ export default function LoginPage() {
             </div>
 
             {/* Right Panel - Form */}
-            <div style={{
-                width: '540px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                padding: '3rem',
-                background: 'white',
-            }}>
+            <div className="split-layout-right">
                 <div style={{ maxWidth: '360px', margin: '0 auto', width: '100%' }}>
                     <h2 style={{
                         fontSize: '1.5rem',

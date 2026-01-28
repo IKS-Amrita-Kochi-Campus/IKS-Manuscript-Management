@@ -193,12 +193,7 @@ export default function Home() {
         paddingBottom: '5rem',
         background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
       }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 2rem',
-          textAlign: 'center',
-        }}>
+        <div className="hero-content">
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -221,8 +216,8 @@ export default function Home() {
           </div>
 
           <h1 style={{
-            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
             fontWeight: 700,
+            marginBottom: '1.5rem',
             color: '#0f172a',
             lineHeight: 1.15,
             maxWidth: '800px',
@@ -243,42 +238,12 @@ export default function Home() {
             A comprehensive platform for scholars and researchers.
           </p>
 
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '1rem',
-          }}>
-            <Link href="/register" style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1.5rem',
-              fontSize: '0.9375rem',
-              fontWeight: 500,
-              color: 'white',
-              textDecoration: 'none',
-              background: '#059669',
-              borderRadius: '0.5rem',
-              transition: 'all 0.15s',
-            }}>
+          <div className="hero-buttons">
+            <Link href="/register" className="btn btn-primary btn-lg">
               Start Exploring
               <ArrowRightIcon />
             </Link>
-            <Link href="/manuscripts" style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1.5rem',
-              fontSize: '0.9375rem',
-              fontWeight: 500,
-              color: '#0f172a',
-              textDecoration: 'none',
-              background: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '0.5rem',
-              transition: 'all 0.15s',
-            }}>
+            <Link href="/manuscripts" className="btn btn-secondary btn-lg">
               Browse Archive
             </Link>
           </div>
@@ -323,17 +288,7 @@ export default function Home() {
               />
               <button
                 type="submit"
-                style={{
-                  padding: '0.625rem 1.25rem',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: 'white',
-                  background: '#059669',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
+                className="btn btn-primary"
               >
                 Search
               </button>
@@ -349,16 +304,8 @@ export default function Home() {
         borderTop: '1px solid #e5e7eb',
         borderBottom: '1px solid #e5e7eb',
       }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 2rem',
-        }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '1.5rem',
-          }}>
+        <div className="container">
+          <div className="stats-grid">
             <StatsCard
               value={loading ? '...' : stats.manuscriptsCount.toLocaleString()}
               label="Manuscripts Archived"
@@ -384,21 +331,12 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section style={{
-        padding: '5rem 0',
-        background: 'white',
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 2rem',
-        }}>
+      <section className="section">
+        <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <h2 style={{
-              fontSize: '1.75rem',
-              fontWeight: 600,
-              color: '#0f172a',
               marginBottom: '0.75rem',
+              color: '#0f172a',
             }}>
               Research-Grade Platform
             </h2>
@@ -412,11 +350,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '1.5rem',
-          }}>
+          <div className="features-grid">
             <FeatureCard
               icon={<ArchiveIcon />}
               title="Digital Preservation"
@@ -456,17 +390,10 @@ export default function Home() {
         padding: '5rem 0',
         background: 'linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%)',
       }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 2rem',
-          textAlign: 'center',
-        }}>
+        <div className="hero-content">
           <h2 style={{
-            fontSize: '1.75rem',
-            fontWeight: 600,
-            color: '#0f172a',
             marginBottom: '0.75rem',
+            color: '#0f172a',
           }}>
             Ready to Start Your Research?
           </h2>
@@ -478,34 +405,12 @@ export default function Home() {
           }}>
             Join thousands of researchers who trust our platform for their Indian knowledge research needs.
           </p>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '1rem',
-          }}>
-            <Link href="/register" style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1.5rem',
-              fontSize: '0.9375rem',
-              fontWeight: 500,
-              color: 'white',
-              textDecoration: 'none',
-              background: '#059669',
-              borderRadius: '0.5rem',
-              transition: 'all 0.15s',
-            }}>
+          <div className="hero-buttons">
+            <Link href="/register" className="btn btn-primary btn-lg">
               Create Free Account
               <ChevronRightIcon />
             </Link>
-            <Link href="/contact" style={{
-              fontSize: '0.9375rem',
-              fontWeight: 500,
-              color: '#059669',
-              textDecoration: 'none',
-            }}>
+            <Link href="/contact" className="btn btn-ghost btn-lg" style={{ color: '#059669' }}>
               Contact Sales
             </Link>
           </div>

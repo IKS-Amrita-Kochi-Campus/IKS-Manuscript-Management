@@ -463,11 +463,7 @@ export default function DashboardBrowsePage() {
             </div>
 
             {/* Search and Filters Bar */}
-            <div style={{
-                display: 'flex',
-                gap: '1rem',
-                marginBottom: '0.5rem',
-            }}>
+            <div className="search-filter-bar">
                 <form onSubmit={handleSearch} style={{
                     flex: 1,
                     position: 'relative',
@@ -589,11 +585,7 @@ export default function DashboardBrowsePage() {
                     padding: '1.5rem',
                     marginBottom: '0.5rem',
                 }}>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                        gap: '1.5rem',
-                    }}>
+                    <div className="filters-grid">
                         <div>
                             <label style={{
                                 display: 'block',
@@ -703,26 +695,14 @@ export default function DashboardBrowsePage() {
 
             {/* Content Grid */}
             {loading ? (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: viewMode === 'grid'
-                        ? 'repeat(auto-fill, minmax(300px, 1fr))'
-                        : '1fr',
-                    gap: '1.5rem',
-                }}>
+                <div className={viewMode === 'grid' ? "manuscripts-grid" : "manuscripts-list"}>
                     {[1, 2, 3, 4, 5, 6].map((n) => (
                         <LoadingSkeleton key={n} />
                     ))}
                 </div>
             ) : manuscripts.length > 0 ? (
                 <>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: viewMode === 'grid'
-                            ? 'repeat(auto-fill, minmax(300px, 1fr))'
-                            : '1fr',
-                        gap: '1.5rem',
-                    }}>
+                    <div className={viewMode === 'grid' ? "manuscripts-grid" : "manuscripts-list"}>
                         {manuscripts.map((manuscript) => (
                             <ManuscriptCard
                                 key={manuscript._id}

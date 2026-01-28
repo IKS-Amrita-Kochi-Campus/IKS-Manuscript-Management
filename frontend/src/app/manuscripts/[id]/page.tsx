@@ -437,7 +437,7 @@ export default function PublicManuscriptDetailPage() {
                     </div>
 
                     {/* Content Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.5rem' }}>
+                    <div className="content-grid-sidebar">
                         {/* Left Column */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             {/* Abstract */}

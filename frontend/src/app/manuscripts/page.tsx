@@ -470,11 +470,7 @@ function ManuscriptsContent() {
                     padding: '2rem',
                 }}>
                     {/* Search and Filters Bar */}
-                    <div style={{
-                        display: 'flex',
-                        gap: '1rem',
-                        marginBottom: '1.5rem',
-                    }}>
+                    <div className="search-filter-bar">
                         <form onSubmit={handleSearch} style={{
                             flex: 1,
                             position: 'relative',
@@ -596,11 +592,7 @@ function ManuscriptsContent() {
                             padding: '1.5rem',
                             marginBottom: '1.5rem',
                         }}>
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(4, 1fr)',
-                                gap: '1.5rem',
-                            }}>
+                            <div className="filters-grid">
                                 <div>
                                     <label style={{
                                         display: 'block',
@@ -759,21 +751,13 @@ function ManuscriptsContent() {
 
                     {/* Manuscripts Grid */}
                     {loading ? (
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: viewMode === 'grid' ? 'repeat(3, 1fr)' : '1fr',
-                            gap: '1.5rem',
-                        }}>
+                        <div className={viewMode === 'grid' ? "manuscripts-grid" : "manuscripts-list"}>
                             {[1, 2, 3, 4, 5, 6].map(i => (
                                 <LoadingSkeleton key={i} />
                             ))}
                         </div>
                     ) : manuscripts.length > 0 ? (
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: viewMode === 'grid' ? 'repeat(3, 1fr)' : '1fr',
-                            gap: '1.5rem',
-                        }}>
+                        <div className={viewMode === 'grid' ? "manuscripts-grid" : "manuscripts-list"}>
                             {manuscripts.map((manuscript) => (
                                 <ManuscriptCard key={manuscript._id} manuscript={manuscript} />
                             ))}
