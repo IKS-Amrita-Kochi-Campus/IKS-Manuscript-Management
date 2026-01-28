@@ -65,10 +65,6 @@ export async function register(
     // Hash password
     const passwordHash = await hashPassword(data.password);
 
-    // Generate email verification token
-    const emailVerificationToken = uuidv4();
-    const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
     // Create user
     const user = await userRepo.create({
         email: data.email.toLowerCase(),
@@ -79,11 +75,12 @@ export async function register(
         designation: data.designation,
         research_interests: data.researchInterests,
         phone: data.phone,
-        email_verification_token: emailVerificationToken,
-        email_verification_expiry: emailVerificationExpiry,
+        is_email_verified: true, // Auto-verified as per requirement
+        email_verification_token: undefined,
+        email_verification_expiry: undefined,
     });
 
-    // TODO: Send verification email
+    // Email verification removed as per new requirement
 
     return {
         success: true,
@@ -93,7 +90,7 @@ export async function register(
             firstName: user.first_name,
             lastName: user.last_name,
             role: user.role,
-            isEmailVerified: user.is_email_verified,
+            isEmailVerified: true,
             verificationStatus: user.verification_status,
         },
     };
@@ -313,22 +310,39 @@ export async function verifyEmail(token: string): Promise<{ success: boolean; er
 /**
  * Request password reset
  */
-export async function requestPasswordReset(email: string): Promise<void> {
+import { getNotificationModel } from '../models/mongo/Notification.model.js';
+
+/**
+ * Request password reset
+ */
+export async function requestPasswordReset(email: string, phone?: string): Promise<void> {
     const user = await userRepo.findByEmail(email);
     if (!user) {
         // Don't reveal if email exists
         return;
     }
 
-    const resetToken = uuidv4();
-    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    // Instead of generating token, notify admins
+    // We don't change anything on the user record yet (no token needed if manual)
 
-    await userRepo.update(user.id, {
-        password_reset_token: resetToken,
-        password_reset_expiry: resetExpiry,
-    });
+    // Find admins to notify
+    const { users: admins } = await userRepo.findAll({ role: 'ADMIN' });
+    const { users: reviewers } = await userRepo.findAll({ role: 'REVIEWER' });
+    const recipients = [...admins, ...reviewers];
 
-    // TODO: Send password reset email
+    const Notification = getNotificationModel();
+
+    for (const admin of recipients) {
+        await Notification.create({
+            userId: admin.id,
+            title: 'Password Reset Request',
+            message: `User ${user.first_name} ${user.last_name} (${user.email}) has requested a password reset. Phone linked to request: ${phone || user.phone || 'Not provided'}. Please reset manually.`,
+            type: 'warning',
+            link: `/dashboard/users/${user.id}`
+        });
+    }
+
+    // TODO: Send password reset email (removed)
 }
 
 /**

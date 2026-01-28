@@ -223,7 +223,7 @@ export default function AllManuscriptsPage() {
                                         </td>
                                         <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
                                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                                                <Link href={`/dashboard/browse`} style={{
+                                                <Link href={`/dashboard/manuscripts/${m._id}`} style={{
                                                     display: 'inline-flex', padding: '0.25rem', color: '#64748b', borderRadius: '4px'
                                                 }}>
                                                     <EyeIcon />

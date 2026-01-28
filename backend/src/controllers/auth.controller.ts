@@ -23,7 +23,7 @@ export async function register(req: Request, res: Response): Promise<void> {
 
     res.status(201).json({
         success: true,
-        message: 'Registration successful. Please check your email to verify your account.',
+        message: 'Registration successful. You can now login.',
         user: result.user,
     });
 }
@@ -136,14 +136,14 @@ export async function verifyEmail(req: Request, res: Response): Promise<void> {
  * Request password reset
  */
 export async function forgotPassword(req: Request, res: Response): Promise<void> {
-    const { email } = req.body;
+    const { email, phone } = req.body;
 
-    await authService.requestPasswordReset(email);
+    await authService.requestPasswordReset(email, phone);
 
     // Always return success (security best practice)
     res.json({
         success: true,
-        message: 'If the email exists, a password reset link has been sent',
+        message: 'If the account exists, the request has been sent to the administrator.',
     });
 }
 

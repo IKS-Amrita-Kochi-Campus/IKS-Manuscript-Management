@@ -748,12 +748,7 @@ export default function NewManuscriptPage() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        if (uploadedManuscriptId && files.length === 0) {
-                                            // Skip to finish if no files
-                                            handleFinalSubmit();
-                                        }
-                                    }}
+                                    onClick={() => setStep(1)}
                                     disabled={isUploading}
                                     style={{
                                         padding: '0.75rem 1.5rem',
@@ -765,14 +760,14 @@ export default function NewManuscriptPage() {
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    {files.length === 0 ? 'Skip & Finish' : 'Back'}
+                                    Back
                                 </button>
                                 <button
                                     onClick={handleFinalSubmit}
-                                    disabled={!allFilesUploaded && files.length > 0}
+                                    disabled={!allFilesUploaded || files.length === 0}
                                     style={{
                                         padding: '0.75rem 2rem',
-                                        background: (allFilesUploaded || files.length === 0) ? '#059669' : '#94a3b8',
+                                        background: (allFilesUploaded && files.length > 0) ? '#059669' : '#94a3b8',
                                         color: 'white',
                                         border: 'none',
                                         borderRadius: '0.5rem',

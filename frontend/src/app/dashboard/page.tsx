@@ -664,6 +664,26 @@ export default function DashboardPage() {
                                 Account Settings
                                 <ChevronRightIcon />
                             </Link>
+                            {(user?.role === 'ADMIN' || user?.role === 'REVIEWER') && (
+                                <Link
+                                    href="/dashboard/admin"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '0.75rem 1rem',
+                                        background: '#f0f9ff',
+                                        borderRadius: '8px',
+                                        textDecoration: 'none',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 500,
+                                        color: '#0369a1',
+                                    }}
+                                >
+                                    Admin Dashboard
+                                    <ChevronRightIcon />
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -142,78 +142,73 @@ const getNavSections = (role: UserRole): NavSection[] => {
         { href: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
     ];
 
-    // ADMIN - Full administrative access
-    if (role === 'ADMIN') {
+    // Base items (Visitor/User items) - Everyone gets these
+    const visitorItems = [
+        ...commonItems,
+        { href: '/dashboard/browse', label: 'Browse Archive', icon: <BrowseIcon /> },
+        { href: '/dashboard/manuscripts', label: 'My Manuscripts', icon: <ManuscriptsIcon /> },
+        { href: '/dashboard/bookmarks', label: 'Bookmarks', icon: <BookmarkIcon /> },
+        { href: '/dashboard/requests', label: 'My Requests', icon: <RequestsIcon /> },
+    ];
+
+    // VISITOR/USER role gets just the main visitor section
+    if (['VISITOR', 'USER'].includes(role)) {
         sections.push({
             title: 'Main',
-            items: [
-                ...commonItems,
-                { href: '/dashboard/browse', label: 'Browse Archive', icon: <BrowseIcon /> },
-            ],
+            items: visitorItems,
         });
+        return sections;
+    }
+
+    // Role-specific additions
+    if (role === 'ADMIN') {
+        // Admin Sections First
         sections.push({
             title: 'Administration',
             items: [
+                { href: '/dashboard/admin', label: 'Admin Dashboard', icon: <DashboardIcon /> },
                 { href: '/dashboard/admin/users', label: 'User Management', icon: <UsersIcon /> },
                 { href: '/dashboard/admin/verifications', label: 'ID Verifications', icon: <ShieldIcon /> },
                 { href: '/dashboard/admin/manuscripts', label: 'All Manuscripts', icon: <ArchiveIcon /> },
-                { href: '/dashboard/admin/requests', label: 'Access Requests', icon: <RequestsIcon /> },
+                { href: '/dashboard/admin/requests', label: 'All Access Requests', icon: <RequestsIcon /> },
                 { href: '/dashboard/review', label: 'Review Queue', icon: <ReviewIcon />, badge: 'Active' },
             ],
         });
         sections.push({
             title: 'Insights',
             items: [
-                { href: '/dashboard/admin/analytics', label: 'Analytics', icon: <AnalyticsIcon /> },
                 { href: '/dashboard/admin/audit', label: 'Audit Logs', icon: <ShieldIcon /> },
             ],
         });
-        return sections;
-    }
-
-    // REVIEWER - Manuscript & request reviewer
-    if (role === 'REVIEWER') {
+        // User tools moved to bottom
         sections.push({
-            title: 'Main',
-            items: [
-                ...commonItems,
-                { href: '/dashboard/browse', label: 'Browse Archive', icon: <BrowseIcon /> },
-                { href: '/dashboard/bookmarks', label: 'Bookmarks', icon: <BookmarkIcon /> },
-            ],
+            title: 'My Research',
+            items: visitorItems,
         });
+    }
+    // REVIEWER
+    else if (role === 'REVIEWER') {
         sections.push({
             title: 'Review Tasks',
             items: [
+                { href: '/dashboard/admin', label: 'Reviewer Dashboard', icon: <DashboardIcon /> },
                 { href: '/dashboard/review', label: 'Review Queue', icon: <ReviewIcon />, badge: 'Pending' },
                 { href: '/dashboard/admin/requests', label: 'Access Requests', icon: <ClipboardIcon /> },
             ],
         });
-        return sections;
+        sections.push({
+            title: 'My Research',
+            items: visitorItems,
+        });
     }
-
-    // VISITOR (Includes USER, OWNER, VISITOR)
-    // "Normal user that check all the files", view metadata, upload manuscripts
-    const isVisitor = ['VISITOR', 'USER', 'OWNER'].includes(role);
-    if (isVisitor) {
-        const visitorItems = [
-            ...commonItems,
-            { href: '/dashboard/browse', label: 'Browse Archive', icon: <BrowseIcon /> },
-            { href: '/dashboard/manuscripts', label: 'My Manuscripts', icon: <ManuscriptsIcon /> },
-            { href: '/dashboard/bookmarks', label: 'Bookmarks', icon: <BookmarkIcon /> },
-            { href: '/dashboard/requests', label: 'My Requests', icon: <RequestsIcon /> },
-        ];
-
-        // If they are specifically an OWNER role in the backend, they might need to manage incoming requests
-        // But conceptually they are still under the "VISITOR" umbrella per user request
-        if (role === 'OWNER') {
-            visitorItems.push({ href: '/dashboard/manage-requests', label: 'Incoming Requests', icon: <ClipboardIcon />, badge: 'Manage' });
-        }
+    // OWNER
+    else if (role === 'OWNER') {
+        visitorItems.push({ href: '/dashboard/manage-requests', label: 'Incoming Requests', icon: <ClipboardIcon />, badge: 'Manage' });
 
         sections.push({
             title: 'Main',
             items: visitorItems,
         });
-        return sections;
     }
 
     return sections;

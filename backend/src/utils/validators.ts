@@ -21,6 +21,7 @@ export const loginSchema = z.object({
 // Password Reset Request Schema
 export const forgotPasswordSchema = z.object({
     email: z.string().email('Invalid email address'),
+    phone: z.string().min(10, 'Phone number must be at least 10 digits'),
 });
 
 // Password Reset Schema
@@ -86,9 +87,9 @@ export const manuscriptSchema = z.object({
 export const accessRequestSchema = z.object({
     manuscriptId: z.string().min(1, 'Manuscript ID is required'),
     requestedLevel: z.enum(['VIEW_METADATA', 'VIEW_CONTENT', 'DOWNLOAD', 'FULL_ACCESS']),
-    purpose: z.string().min(10, 'Purpose must be at least 10 characters'),
-    institution: z.string().min(1, 'Institution is required'),
-    justification: z.string().min(50, 'Justification must be at least 50 characters'),
+    purpose: z.string().min(5, 'Purpose is required'),
+    institution: z.string().optional(),
+    justification: z.string().optional(),
     duration: z.number().int().positive().optional(), // Days
 });
 
