@@ -294,8 +294,9 @@ export async function getMyManuscripts(req: Request, res: Response): Promise<voi
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
+    const search = req.query.q as string | undefined;
 
-    const result = await manuscriptService.getUserManuscripts(req.user.userId, page, limit);
+    const result = await manuscriptService.getUserManuscripts(req.user.userId, page, limit, search);
 
     if (!result.success) {
         res.status(500).json({

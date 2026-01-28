@@ -498,14 +498,24 @@ export async function searchManuscripts(
 export async function getUserManuscripts(
     userId: string,
     page = 1,
-    limit = 20
+    limit = 20,
+    search?: string
 ): Promise<ManuscriptResult> {
     const Manuscript = getManuscriptModel();
 
-    const query = {
+    const query: Record<string, unknown> = {
         ownerId: userId,
         deletedAt: { $exists: false },
     };
+
+    if (search) {
+        query.$or = [
+            { title: { $regex: search, $options: 'i' } },
+            { author: { $regex: search, $options: 'i' } },
+            { category: { $regex: search, $options: 'i' } },
+            { abstract: { $regex: search, $options: 'i' } },
+        ];
+    }
 
     const [manuscripts, total] = await Promise.all([
         Manuscript.find(query)
