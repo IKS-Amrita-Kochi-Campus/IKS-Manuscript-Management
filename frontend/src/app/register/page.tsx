@@ -59,7 +59,7 @@ export default function RegisterPage() {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
-    const [institution, setInstitution] = useState('');
+    const [institution, setInstitution] = useState('No Organisation');
     const [password, setPassword] = useState('');
     const [turnstileToken, setTurnstileToken] = useState('');
     const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAA2pX7sX7sX7sX7s'; // Test key if not provided

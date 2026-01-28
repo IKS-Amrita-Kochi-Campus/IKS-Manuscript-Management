@@ -25,6 +25,15 @@ const findCountryByPhone = (phone: string): { country: Country; number: string }
 };
 
 // Types
+interface University {
+    name: string;
+    country: string;
+    domains: string[];
+    web_pages: string[];
+    alpha_two_code: string;
+    "state-province": string | null;
+}
+
 interface User {
     id: string;
     email: string;
@@ -101,15 +110,50 @@ export default function SettingsPage() {
     // Form states
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [institution, setInstitution] = useState('');
+    const [institution, setInstitution] = useState('No Organisation');
     const [designation, setDesignation] = useState('');
     const [phone, setPhone] = useState('');
+
+    // University Search State
+    const [suggestions, setSuggestions] = useState<University[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    useEffect(() => {
+        const fetchUniversities = async () => {
+            if (institution.length < 3) {
+                setSuggestions([]);
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://universities.hipolabs.com/search?name=${encodeURIComponent(institution)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setSuggestions(data.slice(0, 10)); // Limit to 10 suggestions
+                }
+            } catch (error) {
+                console.error('Error fetching universities:', error);
+            }
+        };
+
+        const timeoutId = setTimeout(() => {
+            fetchUniversities();
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [institution]);
 
     // Password change states
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [changingPassword, setChangingPassword] = useState(false);
+
+    // Password visibility states
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
     // Verification states
     const [idType, setIdType] = useState('PAN_CARD');
@@ -160,7 +204,7 @@ export default function SettingsPage() {
                 setUser(response.user);
                 setFirstName(response.user.first_name || '');
                 setLastName(response.user.last_name || '');
-                setInstitution(response.user.institution || '');
+                setInstitution(response.user.institution || 'No Organisation');
                 setDesignation(response.user.designation || '');
 
                 // Parse phone number
@@ -610,22 +654,71 @@ export default function SettingsPage() {
                                 }}>
                                     Institution / Organization
                                 </label>
-                                <input
-                                    type="text"
-                                    value={institution}
-                                    onChange={(e) => setInstitution(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        height: '44px',
-                                        padding: '0 0.875rem',
-                                        fontSize: '0.9375rem',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '0.5rem',
-                                        background: 'white',
-                                        color: '#0f172a',
-                                        outline: 'none',
-                                    }}
-                                />
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Search your university or organization"
+                                        value={institution}
+                                        onChange={(e) => {
+                                            setInstitution(e.target.value);
+                                            setShowSuggestions(true);
+                                        }}
+                                        onFocus={() => setShowSuggestions(true)}
+                                        style={{
+                                            width: '100%',
+                                            height: '44px',
+                                            padding: '0 0.875rem',
+                                            fontSize: '0.9375rem',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: '0.5rem',
+                                            background: 'white',
+                                            color: '#0f172a',
+                                            outline: 'none',
+                                        }}
+                                    />
+                                    {showSuggestions && suggestions.length > 0 && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            left: 0,
+                                            right: 0,
+                                            maxHeight: '200px',
+                                            overflowY: 'auto',
+                                            background: 'white',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: '0.5rem',
+                                            marginTop: '4px',
+                                            zIndex: 10,
+                                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                                        }}>
+                                            {suggestions.map((uni, index) => (
+                                                <div
+                                                    key={index}
+                                                    onClick={() => {
+                                                        setInstitution(uni.name);
+                                                        setShowSuggestions(false);
+                                                    }}
+                                                    style={{
+                                                        padding: '0.75rem 1rem',
+                                                        fontSize: '0.875rem',
+                                                        color: '#0f172a',
+                                                        cursor: 'pointer',
+                                                        borderBottom: index < suggestions.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                                        background: 'white',
+                                                        transition: 'background 0.15s',
+                                                    }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                                                >
+                                                    {uni.name}
+                                                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b' }}>
+                                                        {uni.country}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div style={{
@@ -910,23 +1003,54 @@ export default function SettingsPage() {
                                         }}>
                                             Current Password
                                         </label>
-                                        <input
-                                            type="password"
-                                            value={currentPassword}
-                                            onChange={(e) => setCurrentPassword(e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                maxWidth: '400px',
-                                                height: '44px',
-                                                padding: '0 0.875rem',
-                                                fontSize: '0.9375rem',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '0.5rem',
-                                                background: 'white',
-                                                color: '#0f172a',
-                                                outline: 'none',
-                                            }}
-                                        />
+                                        <div style={{ position: 'relative', maxWidth: '400px' }}>
+                                            <input
+                                                type={showCurrentPassword ? "text" : "password"}
+                                                value={currentPassword}
+                                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '44px',
+                                                    padding: '0 2.5rem 0 0.875rem',
+                                                    fontSize: '0.9375rem',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: '0.5rem',
+                                                    background: 'white',
+                                                    color: '#0f172a',
+                                                    outline: 'none',
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    right: '0.75rem',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    color: '#64748b',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    padding: 0,
+                                                }}
+                                            >
+                                                {showCurrentPassword ? (
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                                        <line x1="1" y1="1" x2="23" y2="23" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                        <circle cx="12" cy="12" r="3" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div style={{ marginBottom: '1rem' }}>
@@ -939,23 +1063,54 @@ export default function SettingsPage() {
                                         }}>
                                             New Password
                                         </label>
-                                        <input
-                                            type="password"
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                maxWidth: '400px',
-                                                height: '44px',
-                                                padding: '0 0.875rem',
-                                                fontSize: '0.9375rem',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '0.5rem',
-                                                background: 'white',
-                                                color: '#0f172a',
-                                                outline: 'none',
-                                            }}
-                                        />
+                                        <div style={{ position: 'relative', maxWidth: '400px' }}>
+                                            <input
+                                                type={showNewPassword ? "text" : "password"}
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '44px',
+                                                    padding: '0 2.5rem 0 0.875rem',
+                                                    fontSize: '0.9375rem',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: '0.5rem',
+                                                    background: 'white',
+                                                    color: '#0f172a',
+                                                    outline: 'none',
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    right: '0.75rem',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    color: '#64748b',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    padding: 0,
+                                                }}
+                                            >
+                                                {showNewPassword ? (
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                                        <line x1="1" y1="1" x2="23" y2="23" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                        <circle cx="12" cy="12" r="3" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        </div>
                                         <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
                                             Must be at least 8 characters
                                         </p>
@@ -971,23 +1126,54 @@ export default function SettingsPage() {
                                         }}>
                                             Confirm New Password
                                         </label>
-                                        <input
-                                            type="password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                maxWidth: '400px',
-                                                height: '44px',
-                                                padding: '0 0.875rem',
-                                                fontSize: '0.9375rem',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '0.5rem',
-                                                background: 'white',
-                                                color: '#0f172a',
-                                                outline: 'none',
-                                            }}
-                                        />
+                                        <div style={{ position: 'relative', maxWidth: '400px' }}>
+                                            <input
+                                                type={showConfirmPassword ? "text" : "password"}
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '44px',
+                                                    padding: '0 2.5rem 0 0.875rem',
+                                                    fontSize: '0.9375rem',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: '0.5rem',
+                                                    background: 'white',
+                                                    color: '#0f172a',
+                                                    outline: 'none',
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    right: '0.75rem',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    color: '#64748b',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    padding: 0,
+                                                }}
+                                            >
+                                                {showConfirmPassword ? (
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                                        <line x1="1" y1="1" x2="23" y2="23" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                        <circle cx="12" cy="12" r="3" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <button

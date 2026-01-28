@@ -380,7 +380,9 @@ function ManuscriptsContent() {
 
     useEffect(() => {
         fetchFilters();
-        // Use initial query from URL params
+        // Sync state with URL params
+        setSearchQuery(initialQuery);
+        // Fetch immediately for better UX
         fetchManuscripts(1, initialQuery);
     }, [initialQuery]);
 

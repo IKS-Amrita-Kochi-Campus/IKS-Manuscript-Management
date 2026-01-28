@@ -245,7 +245,8 @@ export default function ManuscriptDetailPage() {
             const url = URL.createObjectURL(blob);
 
             // Check if it's an image - use ImageViewer
-            if (file.mimetype.startsWith('image/')) {
+            const mimetype = file.mimetype || '';
+            if (mimetype.startsWith('image/')) {
                 setViewingImage({ url, name: file.name, index: fileIndex });
             } else {
                 // For PDFs and other files, open in new tab

@@ -473,9 +473,9 @@ export async function searchManuscripts(
 
     // Sort
     const sort: Record<string, 1 | -1> = {};
-    if (q) {
-        sort.score = -1; // Text search relevance
-    }
+    // if (q) {
+    //    sort.score = -1; // Regex search doesn't provide score
+    // }
     sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
     const [manuscripts, total] = await Promise.all([
