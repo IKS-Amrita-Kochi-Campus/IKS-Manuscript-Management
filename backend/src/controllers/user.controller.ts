@@ -55,6 +55,7 @@ export async function updateProfile(req: Request, res: Response): Promise<void> 
     if (data.researchInterests !== undefined) updateData.research_interests = data.researchInterests;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.address !== undefined) updateData.address = data.address;
+    if (data.notificationPreferences !== undefined) updateData.notification_preferences = data.notificationPreferences;
 
     const user = await userRepo.update(req.user.userId, updateData);
 
@@ -72,6 +73,7 @@ export async function updateProfile(req: Request, res: Response): Promise<void> 
             research_interests: user.research_interests,
             phone: user.phone,
             address: user.address,
+            notification_preferences: user.notification_preferences,
         } : null,
     });
 }

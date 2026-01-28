@@ -1,8 +1,28 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchJsonWithAuth, getApiUrl, isAuthenticated } from '@/lib/api';
+import { countries, Country } from '@/lib/countries';
+
+// Helper to find country by phone number
+const findCountryByPhone = (phone: string): { country: Country; number: string } | null => {
+    if (!phone) return null;
+    // Sort by dial_code length descending to match longest code first
+    const sortedCountries = [...countries].sort((a, b) => b.dial_code.length - a.dial_code.length);
+
+    for (const country of sortedCountries) {
+        // Clean dial code of spaces/dashes for matching
+        const cleanDialCode = country.dial_code.replace(/[\s-]/g, '');
+        if (phone.startsWith(cleanDialCode)) {
+            return {
+                country,
+                number: phone.slice(cleanDialCode.length)
+            };
+        }
+    }
+    return null;
+};
 
 // Types
 interface User {
@@ -19,6 +39,7 @@ interface User {
     verification_status?: string;
     email_verified?: boolean;
     created_at?: string;
+    notification_preferences?: Record<string, boolean>;
 }
 
 interface Session {
@@ -95,6 +116,40 @@ export default function SettingsPage() {
     const [idFile, setIdFile] = useState<File | null>(null);
     const [uploadingId, setUploadingId] = useState(false);
 
+    // Notification states
+    const [notificationPreferences, setNotificationPreferences] = useState<Record<string, boolean>>({
+        access_requests: true,
+        new_manuscripts: true,
+        research_updates: true,
+        security_alerts: true,
+    });
+
+    // Country Selector State
+    const [selectedCountry, setSelectedCountry] = useState<Country>(countries.find(c => c.code === 'IN') || countries[0]);
+    const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+    const [countrySearchQuery, setCountrySearchQuery] = useState('');
+    const countryDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Filter countries based on search
+    const filteredCountries = countries.filter(country =>
+        country.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) ||
+        country.dial_code.includes(countrySearchQuery) ||
+        country.code.toLowerCase().includes(countrySearchQuery.toLowerCase())
+    );
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
+                setIsCountryDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const fetchUserData = async () => {
         try {
             setLoading(true);
@@ -107,7 +162,24 @@ export default function SettingsPage() {
                 setLastName(response.user.last_name || '');
                 setInstitution(response.user.institution || '');
                 setDesignation(response.user.designation || '');
-                setPhone(response.user.phone || '');
+
+                // Parse phone number
+                if (response.user.phone) {
+                    const match = findCountryByPhone(response.user.phone);
+                    if (match) {
+                        setSelectedCountry(match.country);
+                        setPhone(match.number);
+                    } else {
+                        setPhone(response.user.phone);
+                    }
+                }
+
+                if (response.user.notification_preferences) {
+                    setNotificationPreferences(prev => ({
+                        ...prev,
+                        ...response.user.notification_preferences
+                    }));
+                }
             }
 
             // Fetch sessions
@@ -143,6 +215,12 @@ export default function SettingsPage() {
         setSuccess('');
 
         try {
+            // Combine country code and phone number
+            // Remove any leading 0s from the local number if present, as it's common practice when adding country code
+            // But let's just clean spaces.
+            const cleanPhone = phone.trim();
+            const fullPhone = cleanPhone ? `${selectedCountry.dial_code}${cleanPhone}` : '';
+
             const response = await fetchJsonWithAuth<{ success: boolean; user: User; error?: string }>(getApiUrl('/users/me'), {
                 method: 'PUT',
                 body: JSON.stringify({
@@ -150,13 +228,14 @@ export default function SettingsPage() {
                     lastName,
                     institution,
                     designation,
-                    phone,
+                    phone: fullPhone,
                 }),
             });
 
             if (response.success) {
                 setSuccess('Profile updated successfully');
                 setUser(response.user);
+                // Keep the local phone state as is
             } else {
                 setError(response.error || 'Failed to update profile');
             }
@@ -271,6 +350,36 @@ export default function SettingsPage() {
             setError('Failed to upload document. Please try again.');
         } finally {
             setUploadingId(false);
+        }
+    };
+
+    const handleNotificationToggle = async (key: string) => {
+        const newPreferences = {
+            ...notificationPreferences,
+            [key]: !notificationPreferences[key]
+        };
+
+        // Optimistic update
+        setNotificationPreferences(newPreferences);
+
+        try {
+            const response = await fetchJsonWithAuth<{ success: boolean; user: User }>(getApiUrl('/users/me'), {
+                method: 'PUT',
+                body: JSON.stringify({
+                    notificationPreferences: newPreferences
+                }),
+            });
+
+            if (!response.success) {
+                // Revert on failure
+                setNotificationPreferences(notificationPreferences);
+                setError('Failed to update notification preferences');
+            }
+        } catch (err) {
+            console.error('Update preferences error:', err);
+            // Revert on failure
+            setNotificationPreferences(notificationPreferences);
+            setError('Failed to update notification preferences');
         }
     };
 
@@ -553,7 +662,7 @@ export default function SettingsPage() {
                                         }}
                                     />
                                 </div>
-                                <div>
+                                <div style={{ position: 'relative' }}>
                                     <label style={{
                                         display: 'block',
                                         fontSize: '0.875rem',
@@ -563,22 +672,180 @@ export default function SettingsPage() {
                                     }}>
                                         Phone Number
                                     </label>
-                                    <input
-                                        type="tel"
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            height: '44px',
-                                            padding: '0 0.875rem',
-                                            fontSize: '0.9375rem',
-                                            border: '1px solid #e5e7eb',
-                                            borderRadius: '0.5rem',
-                                            background: 'white',
-                                            color: '#0f172a',
-                                            outline: 'none',
-                                        }}
-                                    />
+                                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                        {/* Country Selector */}
+                                        <div ref={countryDropdownRef} style={{ position: 'relative' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsCountryDropdownOpen(!isCountryDropdownOpen);
+                                                    setCountrySearchQuery(''); // Reset search on open
+                                                }}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    height: '44px',
+                                                    padding: '0 0.875rem',
+                                                    fontSize: '0.9375rem',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: '0.5rem',
+                                                    background: 'white',
+                                                    color: '#0f172a',
+                                                    cursor: 'pointer',
+                                                    minWidth: '120px',
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '1.25rem' }}>{selectedCountry.flag}</span>
+                                                <span>{selectedCountry.dial_code}</span>
+                                                <svg
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    style={{ marginLeft: 'auto', color: '#64748b' }}
+                                                >
+                                                    <path d="m6 9 6 6 6-6" />
+                                                </svg>
+                                            </button>
+
+                                            {isCountryDropdownOpen && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    top: 'calc(100% + 4px)',
+                                                    left: 0,
+                                                    width: '300px',
+                                                    maxHeight: '320px',
+                                                    background: 'white',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: '0.5rem',
+                                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                                                    zIndex: 50,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                }}>
+                                                    {/* Search Input */}
+                                                    <div style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                                                        <div style={{ position: 'relative' }}>
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                left: '0.75rem',
+                                                                top: '50%',
+                                                                transform: 'translateY(-50%)',
+                                                                color: '#64748b'
+                                                            }}>
+                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                    <circle cx="11" cy="11" r="8" />
+                                                                    <path d="m21 21-4.3-4.3" />
+                                                                </svg>
+                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Search country"
+                                                                autoFocus
+                                                                value={countrySearchQuery}
+                                                                onChange={(e) => setCountrySearchQuery(e.target.value)}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    height: '36px',
+                                                                    padding: '0 0.75rem 0 2.25rem',
+                                                                    fontSize: '0.875rem',
+                                                                    border: '1px solid #e5e7eb',
+                                                                    borderRadius: '0.375rem',
+                                                                    outline: 'none',
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Country List */}
+                                                    <div style={{
+                                                        overflowY: 'auto',
+                                                        flex: 1,
+                                                        padding: '0.5rem'
+                                                    }}>
+                                                        {filteredCountries.length > 0 ? (
+                                                            filteredCountries.map(country => (
+                                                                <button
+                                                                    key={country.code}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setSelectedCountry(country);
+                                                                        setIsCountryDropdownOpen(false);
+                                                                    }}
+                                                                    style={{
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '0.75rem',
+                                                                        width: '100%',
+                                                                        padding: '0.5rem 0.75rem',
+                                                                        background: selectedCountry.code === country.code ? '#eff6ff' : 'transparent',
+                                                                        border: 'none',
+                                                                        borderRadius: '0.375rem',
+                                                                        cursor: 'pointer',
+                                                                        textAlign: 'left',
+                                                                        transition: 'background 0.2s',
+                                                                    }}
+                                                                    onMouseEnter={(e) => {
+                                                                        if (selectedCountry.code !== country.code) {
+                                                                            e.currentTarget.style.background = '#f8fafc';
+                                                                        }
+                                                                    }}
+                                                                    onMouseLeave={(e) => {
+                                                                        if (selectedCountry.code !== country.code) {
+                                                                            e.currentTarget.style.background = 'transparent';
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>{country.flag}</span>
+                                                                    <span style={{ fontSize: '0.875rem', color: '#0f172a', flex: 1 }}>
+                                                                        {country.name} ({country.dial_code})
+                                                                    </span>
+                                                                    {selectedCountry.code === country.code && (
+                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                            <polyline points="20 6 9 17 4 12" />
+                                                                        </svg>
+                                                                    )}
+                                                                </button>
+                                                            ))
+                                                        ) : (
+                                                            <div style={{ padding: '1rem', textAlign: 'center', fontSize: '0.875rem', color: '#64748b' }}>
+                                                                No countries found
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <input
+                                            type="tel"
+                                            value={phone}
+                                            onChange={(e) => {
+                                                // Only allow numbers, spaces, and brackets
+                                                const val = e.target.value;
+                                                if (/^[0-9\s-]*$/.test(val)) {
+                                                    setPhone(val);
+                                                }
+                                            }}
+                                            placeholder="Phone number"
+                                            style={{
+                                                flex: 1,
+                                                height: '44px',
+                                                padding: '0 0.875rem',
+                                                fontSize: '0.9375rem',
+                                                border: '1px solid #e5e7eb',
+                                                borderRadius: '0.5rem',
+                                                background: 'white',
+                                                color: '#0f172a',
+                                                outline: 'none',
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -1029,17 +1296,30 @@ export default function SettingsPage() {
                                         <label style={{ position: 'relative', display: 'inline-block', width: '44px', height: '24px' }}>
                                             <input
                                                 type="checkbox"
-                                                defaultChecked={pref.id === 'security_alerts'}
+                                                checked={!!notificationPreferences[pref.id]}
+                                                onChange={() => handleNotificationToggle(pref.id)}
                                                 style={{ opacity: 0, width: 0, height: 0 }}
                                             />
                                             <span style={{
                                                 position: 'absolute',
                                                 cursor: 'pointer',
                                                 inset: 0,
-                                                background: '#e5e7eb',
+                                                background: notificationPreferences[pref.id] ? '#059669' : '#e5e7eb',
                                                 borderRadius: '24px',
                                                 transition: 'all 0.2s',
-                                            }} />
+                                            }}>
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    content: '""',
+                                                    height: '20px',
+                                                    width: '20px',
+                                                    left: notificationPreferences[pref.id] ? '22px' : '2px',
+                                                    bottom: '2px',
+                                                    backgroundColor: 'white',
+                                                    transition: '0.2s',
+                                                    borderRadius: '50%'
+                                                }} />
+                                            </span>
                                         </label>
                                     </div>
                                 ))}
@@ -1048,6 +1328,6 @@ export default function SettingsPage() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

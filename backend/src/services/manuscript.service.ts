@@ -452,14 +452,19 @@ export async function searchManuscripts(
         status: 'published',
     };
 
-    // Text search
+    // Search
     if (q) {
-        query.$text = { $search: q };
+        query.$or = [
+            { title: { $regex: q, $options: 'i' } },
+            { author: { $regex: q, $options: 'i' } },
+            { abstract: { $regex: q, $options: 'i' } },
+            { keywords: { $regex: q, $options: 'i' } },
+        ];
     }
 
     // Filters
     if (category) query.category = category;
-    if (language) query.language = { $in: [language] };
+    if (language) query.languages = { $in: [language] };
     if (script) query.script = { $in: [script] };
     if (material) query.material = material;
     if (century) query.centuryEstimate = century;

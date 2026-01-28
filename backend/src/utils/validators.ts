@@ -38,6 +38,7 @@ export const updateProfileSchema = z.object({
     researchInterests: z.string().optional(),
     phone: z.string().optional(),
     address: z.string().optional(),
+    notificationPreferences: z.record(z.string(), z.boolean()).optional(),
 });
 
 // Manuscript Create/Update Schema

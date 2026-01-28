@@ -201,6 +201,7 @@ async function initializePostgresTables(): Promise<void> {
       is_active BOOLEAN DEFAULT TRUE,
       last_login_at TIMESTAMP,
       last_login_ip VARCHAR(50),
+      notification_preferences JSONB DEFAULT '{}',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -316,6 +317,9 @@ async function initializePostgresTables(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_verification_documents_user_id ON verification_documents(user_id);
     CREATE INDEX IF NOT EXISTS idx_bookmarks_user_id ON bookmarks(user_id);
     CREATE INDEX IF NOT EXISTS idx_bookmarks_manuscript_id ON bookmarks(manuscript_id);
+
+    -- Migrations (ensure columns exist for existing tables)
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{}';
   `;
 
     await _pgPool!.query(createTablesQuery);

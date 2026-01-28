@@ -32,6 +32,7 @@ export interface User {
     is_active: boolean;
     last_login_at?: Date;
     last_login_ip?: string;
+    notification_preferences?: Record<string, boolean>;
     created_at: Date;
     updated_at: Date;
 }
