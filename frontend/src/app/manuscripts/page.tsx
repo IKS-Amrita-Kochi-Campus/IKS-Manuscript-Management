@@ -384,15 +384,24 @@ function ManuscriptsContent() {
         fetchManuscripts(1, initialQuery);
     }, [initialQuery]);
 
+    // Debounce search query
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         setCurrentPage(1);
         fetchManuscripts(1);
-    }, [selectedCategory, selectedLanguage]);
+    }, [selectedCategory, selectedLanguage, debouncedSearchQuery]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        setCurrentPage(1);
-        fetchManuscripts(1);
+        // Search is handled by debounce
     };
 
     const handlePageChange = (page: number) => {

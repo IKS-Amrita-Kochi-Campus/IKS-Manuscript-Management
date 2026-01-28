@@ -51,6 +51,13 @@ const EyeIcon = () => (
     </svg>
 );
 
+const SearchIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+    </svg>
+);
+
 const LoadingSpinner = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
         <circle cx="12" cy="12" r="10" opacity="0.25" />
@@ -64,6 +71,7 @@ export default function BookmarksPage() {
     const [manuscripts, setManuscripts] = useState<Record<string, Manuscript>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -146,6 +154,20 @@ export default function BookmarksPage() {
         });
     };
 
+    const filteredBookmarks = bookmarks.filter(bookmark => {
+        if (!searchQuery) return true;
+        const manuscript = manuscripts[bookmark.manuscript_id];
+        if (!manuscript) return false;
+
+        const query = searchQuery.toLowerCase();
+        return (
+            manuscript.title.toLowerCase().includes(query) ||
+            manuscript.author.toLowerCase().includes(query) ||
+            manuscript.category.toLowerCase().includes(query) ||
+            (manuscript.abstract && manuscript.abstract.toLowerCase().includes(query))
+        );
+    });
+
     if (loading) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh' }}>
@@ -165,6 +187,40 @@ export default function BookmarksPage() {
                     Manuscripts you've saved for later • {bookmarks.length} saved
                 </p>
             </div>
+
+            {/* Search Bar */}
+            {bookmarks.length > 0 && (
+                <div className="search-filter-bar" style={{ marginBottom: '1.5rem' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                        <div style={{
+                            position: 'absolute',
+                            left: '1rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: '#64748b',
+                        }}>
+                            <SearchIcon />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search by title, author, category..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                width: '100%',
+                                height: '44px',
+                                padding: '0 1rem 0 3rem',
+                                fontSize: '0.9375rem',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '0.5rem',
+                                background: 'white',
+                                color: '#0f172a',
+                                outline: 'none',
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
 
             {error && (
                 <div style={{
@@ -220,9 +276,32 @@ export default function BookmarksPage() {
                         Browse Archive
                     </Link>
                 </div>
+            ) : filteredBookmarks.length === 0 ? (
+                <div style={{
+                    padding: '3rem',
+                    textAlign: 'center',
+                    background: 'white',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb',
+                }}>
+                    <p style={{ color: '#64748b' }}>No bookmarks match your search.</p>
+                    <button
+                        onClick={() => setSearchQuery('')}
+                        style={{
+                            marginTop: '1rem',
+                            color: '#059669',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontWeight: 500,
+                        }}
+                    >
+                        Clear search
+                    </button>
+                </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {bookmarks.map((bookmark) => {
+                    {filteredBookmarks.map((bookmark) => {
                         const manuscript = manuscripts[bookmark.manuscript_id];
 
                         return (

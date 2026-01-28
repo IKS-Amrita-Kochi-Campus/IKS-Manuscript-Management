@@ -249,6 +249,17 @@ export default function ManuscriptsPage() {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [currentPage, setCurrentPage] = useState(1);
 
+    // Debounce search query
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     const fetchManuscripts = async (page = 1, search = '') => {
         try {
             setLoading(true);
@@ -281,8 +292,11 @@ export default function ManuscriptsPage() {
             router.push('/login');
             return;
         }
-        fetchManuscripts();
-    }, [router]);
+        // Fetch only if it's the initial load or debounce value changes
+        // But we handle initial load separately or via this same effect
+        fetchManuscripts(1, debouncedSearchQuery);
+        setCurrentPage(1); // Reset page on search change
+    }, [router, debouncedSearchQuery]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
