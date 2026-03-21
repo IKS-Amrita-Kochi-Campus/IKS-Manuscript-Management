@@ -5,6 +5,9 @@ export type { IManuscript } from './mongo/Manuscript.model.js';
 export { getAuditLogModel } from './mongo/AuditLog.model.js';
 export type { IAuditLog } from './mongo/AuditLog.model.js';
 
+export { getEventModel } from './mongo/Event.model.js';
+export type { IEvent } from './mongo/Event.model.js';
+
 // PostgreSQL Repositories
 export {
     userRepo,

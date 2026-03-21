@@ -286,6 +286,24 @@ export default function AdminDashboardPage() {
                         </p>
                     </div>
                 </Link>
+
+                {/* Events Module */}
+                <Link href="/dashboard/admin/events" style={{ textDecoration: 'none' }}>
+                    <div style={{
+                        background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem',
+                        transition: 'transform 0.15s', cursor: 'pointer'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                            <div style={{ padding: '0.75rem', background: '#ecfdf5', borderRadius: '8px', color: '#059669' }}>
+                                <BookOpenIcon />
+                            </div>
+                            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Event Management</h3>
+                        </div>
+                        <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+                            Add and manage events displayed on the IKS public website. Events are served via REST API.
+                        </p>
+                    </div>
+                </Link>
             </div>
         </div>
     );

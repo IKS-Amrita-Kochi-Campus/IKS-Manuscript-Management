@@ -178,16 +178,29 @@ export async function fetchWithAuth(
         csrfToken = await fetchCsrfToken();
     }
 
+    // Decide default headers
+    const defaultHeaders: Record<string, string> = {
+        'Authorization': `Bearer ${token}`,
+        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+    };
+
+    // Force application/json ONLY if body is NOT FormData
+    // (FormData natively sets multipart/form-data boundary automatically)
+    if (!(options.body instanceof FormData)) {
+        defaultHeaders['Content-Type'] = 'application/json';
+    }
+
+    // Combine headers
+    const headers = {
+        ...defaultHeaders,
+        ...options.headers,
+    };
+
     // Make the initial request
     let response = await fetch(url, {
         ...options,
         credentials: 'include', // Required for cross-origin cookies
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-            ...options.headers,
-        },
+        headers,
     });
 
     // If unauthorized, try to refresh the token
@@ -255,9 +268,13 @@ export async function fetchJsonWithAuth<T = unknown>(
 }
 
 /**
- * Get the full API URL
+ * Get the full API URL (or static file URL for uploads)
  */
 export function getApiUrl(path: string): string {
+    if (path.startsWith('/uploads')) {
+        // Serve uploads from the root server, not the /api prefix
+        return `${API_BASE_URL.replace(/\/api$/, '')}${path}`;
+    }
     return `${API_BASE_URL}${path}`;
 }
 

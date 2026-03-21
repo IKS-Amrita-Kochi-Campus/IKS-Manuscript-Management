@@ -9,6 +9,7 @@ import settingsRoutes from './settings.routes.js';
 import logRoutes from './log.routes.js';
 
 import notificationRoutes from './notification.routes.js';
+import eventRoutes from './event.routes.js';
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.use('/bookmarks', bookmarkRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/logs', logRoutes);
 router.use('/user-alerts', notificationRoutes);
+router.use('/events', eventRoutes);
 
 export default router;
 

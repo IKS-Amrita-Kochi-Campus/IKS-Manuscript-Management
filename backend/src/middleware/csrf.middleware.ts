@@ -58,6 +58,13 @@ export const validateCsrfToken = (req: Request, res: Response, next: NextFunctio
         '/auth/reset-password',
         '/auth/verify-email',
         '/logs', // Frontend logging without /api prefix
+        // Event image upload uses multipart/form-data which cannot carry X-CSRF-Token header.
+        // The route is protected by JWT + requireAdmin middleware instead.
+        '/api/events/add',
+        '/events/add',
+        // Also skip CSRF for editing events as they also use multipart/form-data
+        '/api/events/',
+        '/events/',
     ];
 
     if (exemptPaths.some(path => req.path.includes(path) || req.originalUrl.includes(path))) {

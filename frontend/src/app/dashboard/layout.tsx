@@ -120,6 +120,15 @@ const ClipboardIcon = () => (
     </svg>
 );
 
+const CalendarIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+);
+
 interface NavItem {
     href: string;
     label: string;
@@ -178,6 +187,13 @@ const getNavSections = (role: UserRole): NavSection[] => {
             title: 'Insights',
             items: [
                 { href: '/dashboard/admin/audit', label: 'Audit Logs', icon: <ShieldIcon /> },
+            ],
+        });
+        sections.push({
+            title: 'Events',
+            items: [
+                { href: '/dashboard/admin/events', label: 'All Events', icon: <CalendarIcon /> },
+                { href: '/dashboard/admin/events/add', label: 'Add Event', icon: <CalendarIcon /> },
             ],
         });
         // User tools moved to bottom
@@ -290,8 +306,15 @@ export default function DashboardLayout({
     const navSections = user ? getNavSections(user.role) : [];
 
     const NavLink = ({ item }: { item: NavItem }) => {
-        const isActive = pathname === item.href ||
-            (item.href !== '/dashboard' && pathname.startsWith(item.href));
+        let isActive = pathname === item.href;
+        // Check for sub-path activity, but don't highlight "All Events" if we're exactly on "Add Event"
+        if (!isActive && item.href !== '/dashboard' && pathname.startsWith(item.href + '/')) {
+            if (item.href === '/dashboard/admin/events' && pathname === '/dashboard/admin/events/add') {
+                isActive = false;
+            } else {
+                isActive = true;
+            }
+        }
 
         return (
             <Link

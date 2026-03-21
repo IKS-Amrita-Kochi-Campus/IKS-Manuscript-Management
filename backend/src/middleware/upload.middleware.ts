@@ -124,3 +124,33 @@ export function getFileType(mimeType: string): 'pdf' | 'image' | 'text' {
     if (mimeType.startsWith('image/')) return 'image';
     return 'text';
 }
+
+// ─── Event Image Upload ───────────────────────────────────────────────────────
+
+const EVENT_IMAGE_MIME_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/avif',
+];
+
+const MAX_EVENT_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB per image
+
+/**
+ * Multer instance for event image uploads.
+ * Accepts up to 10 images; images are compressed via sharp in the controller.
+ */
+export const eventImageUpload = multer({
+    storage: memoryStorage,
+    limits: {
+        fileSize: MAX_EVENT_IMAGE_SIZE,
+        files: 10,
+    },
+    fileFilter: (_req, file, callback) => {
+        if (EVENT_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Event images must be JPEG, PNG, WebP, or AVIF'));
+        }
+    },
+});

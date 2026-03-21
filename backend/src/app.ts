@@ -1,5 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import http from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -9,6 +11,9 @@ import { connectAllDatabases, disconnectAllDatabases } from './config/database.j
 import { auditLog, apiLimiter, burstLimiter } from './middleware/index.js';
 import routes from './routes/index.js';
 import ensureLatestCode from './utils/startup-recovery.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Allow self-signed certificates for cloud databases (Aiven, Atlas)
 // In production, use proper SSL certificates
@@ -66,14 +71,26 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
     'https://ikskochi.org',
+    'https://www.ikskochi.org',
+    // IKS Static on Vercel – set STATIC_SITE_URL in .env (e.g. https://iks-static.vercel.app)
+    process.env.STATIC_SITE_URL,
+].filter(Boolean) as string[];
+
+// Regex patterns for origins we trust unconditionally (e.g. Vercel preview deployments)
+const allowedOriginPatterns: RegExp[] = [
+    /^https:\/\/.*\.vercel\.app$/, // any Vercel deployment
 ];
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
+        // Allow requests with no origin (mobile apps, curl, server-to-server)
         if (!origin) return callback(null, true);
 
-        if (config.env === 'development' || allowedOrigins.includes(origin)) {
+        if (
+            config.env === 'development' ||
+            allowedOrigins.includes(origin) ||
+            allowedOriginPatterns.some((pattern) => pattern.test(origin))
+        ) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
@@ -121,6 +138,16 @@ app.use(auditLog); // Also apply globally as fallback
 // CSRF Protection
 // Apply globally except for specific webhooks if any
 app.use(validateCsrfToken);
+
+// Static files — serve uploaded event images publicly
+// e.g. GET http://server:5000/uploads/events/abc.webp
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads'), {
+    maxAge: '7d',           // cache in browser for 7 days
+    immutable: true,        // filename includes UUID so content never changes
+    setHeaders: (res) => {
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // allow Vercel to load images
+    },
+}));
 
 // API routes
 app.use(config.apiPrefix, routes);
